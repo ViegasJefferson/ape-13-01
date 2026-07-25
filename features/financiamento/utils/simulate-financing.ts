@@ -1,5 +1,6 @@
 import type {
   FinancingComparison,
+  FinancingInstallment,
   FinancingSimulationInput,
   FinancingSimulationResult,
 } from "@/features/financiamento/types";
@@ -21,13 +22,6 @@ function calculatePricePayment(
   );
 }
 
-/**
- * Encontra a taxa mensal compatível com o valor financiado,
- * a prestação-base e o prazo contratual.
- *
- * Isso evita pequenos resíduos causados pelo arredondamento
- * das taxas publicadas no contrato.
- */
 function calculateImpliedMonthlyRate(
   principal: number,
   payment: number,
@@ -72,10 +66,17 @@ function calculateImpliedMonthlyRate(
   return (minimumRate + maximumRate) / 2;
 }
 
-function calculateEndDate(startDate: string, months: number) {
+function calculateInstallmentDate(
+  startDate: string,
+  installmentNumber: number,
+) {
   const [year, month, day] = startDate.split("-").map(Number);
 
-  return new Date(year, month - 1 + months - 1, day);
+  return new Date(
+    year,
+    month - 1 + installmentNumber - 1,
+    day,
+  );
 }
 
 export function simulateFinancing(
@@ -96,20 +97,24 @@ export function simulateFinancing(
   let totalExtraPaid = 0;
   let currentMonth = 0;
 
+  const schedule: FinancingInstallment[] = [];
+
   while (
     outstandingBalance > 0.01 &&
     currentMonth < MAX_SIMULATION_MONTHS
   ) {
     currentMonth += 1;
 
+    const openingBalance = outstandingBalance;
+
     /*
-     * Primeiro atualizamos o saldo pela TR informada.
-     * O valor padrão será zero porque a TR futura é desconhecida.
+     * Atualização mensal do saldo pela TR projetada.
+     * O valor padrão permanece em zero porque a TR futura
+     * não pode ser conhecida antecipadamente.
      */
     const trAdjustment = outstandingBalance * monthlyTrRate;
 
     outstandingBalance += trAdjustment;
-    totalTrAdjustment += trAdjustment;
 
     const interest = outstandingBalance * monthlyInterestRate;
 
@@ -126,12 +131,15 @@ export function simulateFinancing(
       );
     }
 
-    outstandingBalance -= principalPayment;
+    outstandingBalance = Math.max(
+      outstandingBalance - principalPayment,
+      0,
+    );
 
     let extraPayment = input.monthlyExtraPayment;
 
     /*
-     * A amortização inicial acontece após o pagamento
+     * A amortização inicial é aplicada depois
      * da primeira prestação.
      */
     if (currentMonth === 1) {
@@ -139,22 +147,39 @@ export function simulateFinancing(
     }
 
     /*
-     * O aporte anual acontece a cada 12 prestações.
+     * A amortização anual é aplicada depois
+     * de cada grupo de 12 prestações.
      */
     if (currentMonth % 12 === 0) {
       extraPayment += input.annualExtraPayment;
     }
 
-    extraPayment = Math.min(
-      extraPayment,
-      Math.max(outstandingBalance, 0),
+    extraPayment = Math.min(extraPayment, outstandingBalance);
+
+    outstandingBalance = Math.max(
+      outstandingBalance - extraPayment,
+      0,
     );
 
-    outstandingBalance -= extraPayment;
-
     totalInterest += interest;
+    totalTrAdjustment += trAdjustment;
     totalExtraPaid += extraPayment;
     totalPaid += regularPayment + extraPayment;
+
+    schedule.push({
+      installmentNumber: currentMonth,
+      dueDate: calculateInstallmentDate(
+        input.startDate,
+        currentMonth,
+      ),
+      openingBalance,
+      trAdjustment,
+      interest,
+      regularPayment,
+      principalPayment,
+      extraPayment,
+      closingBalance: outstandingBalance,
+    });
   }
 
   if (currentMonth >= MAX_SIMULATION_MONTHS) {
@@ -163,14 +188,23 @@ export function simulateFinancing(
     );
   }
 
+  const finalInstallment = schedule.at(-1);
+
+  if (!finalInstallment) {
+    throw new Error(
+      "O simulador não conseguiu gerar o demonstrativo.",
+    );
+  }
+
   return {
     months: currentMonth,
-    endDate: calculateEndDate(input.startDate, currentMonth),
+    endDate: finalInstallment.dueDate,
     totalInterest,
     totalTrAdjustment,
     totalPaid,
     totalExtraPaid,
     monthlyInterestRate,
+    schedule,
   };
 }
 
@@ -189,7 +223,10 @@ export function compareFinancing(
   return {
     baseline,
     scenario,
-    monthsSaved: Math.max(baseline.months - scenario.months, 0),
+    monthsSaved: Math.max(
+      baseline.months - scenario.months,
+      0,
+    ),
     interestSaved: Math.max(
       baseline.totalInterest - scenario.totalInterest,
       0,
@@ -204,12 +241,23 @@ export function formatCurrency(value: number) {
   }).format(value);
 }
 
+export function formatCompactCurrency(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 export function formatTerm(totalMonths: number) {
   const years = Math.floor(totalMonths / 12);
   const months = totalMonths % 12;
 
   const yearText =
-    years === 0 ? "" : `${years} ${years === 1 ? "ano" : "anos"}`;
+    years === 0
+      ? ""
+      : `${years} ${years === 1 ? "ano" : "anos"}`;
 
   const monthText =
     months === 0

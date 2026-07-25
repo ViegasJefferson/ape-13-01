@@ -11,6 +11,18 @@ export interface FinancingSimulationInput {
   startDate: string;
 }
 
+export interface FinancingInstallment {
+  installmentNumber: number;
+  dueDate: Date;
+  openingBalance: number;
+  trAdjustment: number;
+  interest: number;
+  regularPayment: number;
+  principalPayment: number;
+  extraPayment: number;
+  closingBalance: number;
+}
+
 export interface FinancingSimulationResult {
   months: number;
   endDate: Date;
@@ -19,6 +31,7 @@ export interface FinancingSimulationResult {
   totalPaid: number;
   totalExtraPaid: number;
   monthlyInterestRate: number;
+  schedule: FinancingInstallment[];
 }
 
 export interface FinancingComparison {

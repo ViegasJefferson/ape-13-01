@@ -1,8 +1,9 @@
 "use client";
 
+import { logout } from "@/app/login/actions";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Menu, X } from "lucide-react";
+import { Bell, Home,LogOut, Menu, X } from "lucide-react";
 
 import { SidebarContent } from "@/components/layout/sidebar-content";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -112,6 +113,18 @@ export function Header() {
               JV
             </AvatarFallback>
           </Avatar>
+          <form action={logout}>
+          <Button
+            type="submit"
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            aria-label="Sair do sistema"
+            title="Sair"
+          >
+            <LogOut className="size-4" />
+          </Button>
+        </form>
         </div>
       </header>
 
