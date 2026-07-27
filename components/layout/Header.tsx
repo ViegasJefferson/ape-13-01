@@ -1,9 +1,9 @@
 "use client";
 
 import { logout } from "@/app/login/actions";
-import { useState } from "react";
+import { Bell, Home, LogOut, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { Bell, Home,LogOut, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 import { SidebarContent } from "@/components/layout/sidebar-content";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +24,11 @@ const sections = [
     path: "/obra",
     eyebrow: "Obra",
     title: "Acompanhamento da obra",
+  },
+  {
+  path: "/obra",
+  eyebrow: "Construção",
+  title: "Evolução da obra",
   },
   {
     path: "/reforma",
