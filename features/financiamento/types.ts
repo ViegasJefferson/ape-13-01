@@ -40,3 +40,21 @@ export interface FinancingComparison {
   monthsSaved: number;
   interestSaved: number;
 }
+
+export type AmortizationSystem = "PRICE" | "SAC" | "OUTRO";
+
+export interface FinancingContract {
+  id: string;
+  apartmentId: string;
+  bankName: string;
+  amortizationSystem: AmortizationSystem;
+  financedAmount: number;
+  contractualTermMonths: number;
+  basePayment: number;
+  initialMonthlyCharge: number | null;
+  nominalAnnualRate: number | null;
+  effectiveAnnualRate: number | null;
+  monthlyTrRate: number;
+  startDate: string;
+  notes: string | null;
+}

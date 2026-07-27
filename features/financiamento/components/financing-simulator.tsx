@@ -1,6 +1,5 @@
 "use client";
 
-
 import { FinancingAnalysis } from "@/features/financiamento/components/financing-analysis";
 import {
   Calculator,
@@ -26,7 +25,10 @@ import {
 } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/label";
-import type { FinancingSimulationInput } from "@/features/financiamento/types";
+import type {
+  FinancingContract,
+  FinancingSimulationInput,
+} from "@/features/financiamento/types";
 import {
   compareFinancing,
   formatCurrency,
@@ -34,14 +36,9 @@ import {
   formatTerm,
 } from "@/features/financiamento/utils/simulate-financing";
 
-const CONTRACT_DATA = {
-  financedAmount: 398_619.6,
-  contractualTermMonths: 360,
-  basePayment: 3_773.84,
-  nominalAnnualRate: 10.9259,
-  effectiveAnnualRate: 11.49,
-  startDate: "2028-04-01",
-};
+interface FinancingSimulatorProps {
+  contract: FinancingContract;
+}
 
 interface ExtraPaymentState {
   initialExtraPayment: number;
@@ -56,6 +53,23 @@ const DEFAULT_EXTRA_PAYMENTS: ExtraPaymentState = {
   annualExtraPayment: 20_000,
   monthlyTrRate: 0,
 };
+
+function formatPercentage(value: number | null) {
+  if (value === null) {
+    return "Não informado";
+  }
+
+  return `${new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(value)}% a.a.`;
+}
+
+function parseDatabaseDate(date: string) {
+  const [year, month, day] = date.split("-").map(Number);
+
+  return new Date(year, month - 1, day);
+}
 
 interface NumberFieldProps {
   id: string;
@@ -87,27 +101,28 @@ function NumberField({
         onChange={(event) => {
           const parsedValue = Number(event.target.value);
 
-          onChange(
-            Number.isFinite(parsedValue)
-              ? Math.max(parsedValue, 0)
-              : 0,
-          );
+          onChange(Number.isFinite(parsedValue) ? Math.max(parsedValue, 0) : 0);
         }}
       />
 
-      <p className="text-xs leading-5 text-slate-500">
-        {description}
-      </p>
+      <p className="text-xs leading-5 text-slate-500">{description}</p>
     </div>
   );
 }
 
-export function FinancingSimulator() {
-  const [extraPayments, setExtraPayments] =
-    useState<ExtraPaymentState>(DEFAULT_EXTRA_PAYMENTS);
+export function FinancingSimulator({ contract }: FinancingSimulatorProps) {
+  const [extraPayments, setExtraPayments] = useState<ExtraPaymentState>(() => ({
+    ...DEFAULT_EXTRA_PAYMENTS,
+    monthlyTrRate: contract.monthlyTrRate,
+  }));
 
   const simulationInput: FinancingSimulationInput = {
-    ...CONTRACT_DATA,
+    financedAmount: contract.financedAmount,
+    contractualTermMonths: contract.contractualTermMonths,
+    basePayment: contract.basePayment,
+    nominalAnnualRate: contract.nominalAnnualRate ?? 0,
+    effectiveAnnualRate: contract.effectiveAnnualRate ?? 0,
+    startDate: contract.startDate,
     ...extraPayments,
   };
 
@@ -133,10 +148,7 @@ export function FinancingSimulator() {
     extraPayments.monthlyTrRate,
   ]);
 
-  function updateValue(
-    field: keyof ExtraPaymentState,
-    value: number,
-  ) {
+  function updateValue(field: keyof ExtraPaymentState, value: number) {
     setExtraPayments((currentValues) => ({
       ...currentValues,
       [field]: value,
@@ -144,7 +156,10 @@ export function FinancingSimulator() {
   }
 
   function resetSimulation() {
-    setExtraPayments(DEFAULT_EXTRA_PAYMENTS);
+    setExtraPayments({
+      ...DEFAULT_EXTRA_PAYMENTS,
+      monthlyTrRate: contract.monthlyTrRate,
+    });
   }
 
   const result = comparison.result;
@@ -154,29 +169,29 @@ export function FinancingSimulator() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Valor financiado"
-          value={formatCurrency(CONTRACT_DATA.financedAmount)}
-          description="Valor inicial contratado no sistema Price."
+          value={formatCurrency(contract.financedAmount)}
+          description={`Valor inicial contratado no sistema ${contract.amortizationSystem}.`}
           icon={Landmark}
         />
 
         <MetricCard
           title="Prazo contratado"
-          value="360 meses"
-          description="Prazo original equivalente a 30 anos."
+          value={`${contract.contractualTermMonths} meses`}
+          description={formatTerm(contract.contractualTermMonths)}
           icon={Clock3}
         />
 
         <MetricCard
           title="Parcela-base"
-          value={formatCurrency(CONTRACT_DATA.basePayment)}
+          value={formatCurrency(contract.basePayment)}
           description="Sem seguros, taxa administrativa e TR."
           icon={Calculator}
         />
 
         <MetricCard
           title="Taxa efetiva"
-          value="11,49% a.a."
-          description="Taxa efetiva anual informada na proposta."
+          value={formatPercentage(contract.effectiveAnnualRate)}
+          description={`Contrato com ${contract.bankName}.`}
           icon={TrendingDown}
         />
       </div>
@@ -231,9 +246,7 @@ export function FinancingSimulator() {
                   description="Aporte adicional realizado a cada 12 prestações."
                   value={extraPayments.annualExtraPayment}
                   step={1_000}
-                  onChange={(value) =>
-                    updateValue("annualExtraPayment", value)
-                  }
+                  onChange={(value) => updateValue("annualExtraPayment", value)}
                 />
 
                 <NumberField
@@ -242,9 +255,7 @@ export function FinancingSimulator() {
                   description="Mantenha zero para não projetar uma TR futura desconhecida."
                   value={extraPayments.monthlyTrRate}
                   step={0.01}
-                  onChange={(value) =>
-                    updateValue("monthlyTrRate", value)
-                  }
+                  onChange={(value) => updateValue("monthlyTrRate", value)}
                 />
 
                 <Button
@@ -272,9 +283,7 @@ export function FinancingSimulator() {
 
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-slate-500">
-                      Prazo
-                    </span>
+                    <span className="text-sm text-slate-500">Prazo</span>
 
                     <span className="text-right font-medium">
                       {formatTerm(result.scenario.months)}
@@ -282,9 +291,7 @@ export function FinancingSimulator() {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-slate-500">
-                      Quitação
-                    </span>
+                    <span className="text-sm text-slate-500">Quitação</span>
 
                     <span className="text-right font-medium">
                       {formatMonthYear(result.scenario.endDate)}
@@ -391,7 +398,10 @@ export function FinancingSimulator() {
                         </p>
 
                         <p className="mt-1 text-xs text-slate-500">
-                          Início da amortização em abril de 2028
+                          Início do contrato em{" "}
+                          {formatMonthYear(
+                            parseDatabaseDate(contract.startDate),
+                          )}
                         </p>
                       </div>
 
@@ -440,9 +450,7 @@ export function FinancingSimulator() {
 
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-slate-500">
-                        Prazo
-                      </span>
+                      <span className="text-sm text-slate-500">Prazo</span>
 
                       <span className="text-right font-medium">
                         {formatTerm(result.baseline.months)}
@@ -450,9 +458,7 @@ export function FinancingSimulator() {
                     </div>
 
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-slate-500">
-                        Quitação
-                      </span>
+                      <span className="text-sm text-slate-500">Quitação</span>
 
                       <span className="text-right font-medium">
                         {formatMonthYear(result.baseline.endDate)}
@@ -505,10 +511,9 @@ export function FinancingSimulator() {
 
               <p className="mt-1 text-sm leading-6 text-amber-800">
                 O cálculo usa o sistema Price, mantém a prestação-base e
-                direciona todas as amortizações para redução de prazo.
-                Seguros, taxa administrativa, alterações contratuais e TR
-                futura não estão incluídos quando o campo de TR permanece em
-                zero.
+                direciona todas as amortizações para redução de prazo. Seguros,
+                taxa administrativa, alterações contratuais e TR futura não
+                estão incluídos quando o campo de TR permanece em zero.
               </p>
             </div>
           </div>
