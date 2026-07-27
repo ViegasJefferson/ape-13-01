@@ -1,18 +1,11 @@
-import {
-    AlertTriangle,
-    ReceiptText,
-} from "lucide-react";
+import { AlertTriangle, ReceiptText } from "lucide-react";
 
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ExpenseDashboard } from "@/features/gastos/components/expense-dashboard";
 import { getExpenseDashboardData } from "@/features/gastos/services/get-expense-dashboard-data";
+import { CreateExpenseDialog } from "@/features/gastos/components/create-expense-dialog";
 
 export default async function GastosPage() {
   await connection();
@@ -30,8 +23,7 @@ export default async function GastosPage() {
               </p>
 
               <p className="mt-2 text-sm text-amber-800">
-                O usuário atual não está associado a um
-                apartamento.
+                O usuário atual não está associado a um apartamento.
               </p>
             </CardContent>
           </Card>
@@ -41,30 +33,37 @@ export default async function GastosPage() {
 
     return (
       <section className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <Badge
-            variant="secondary"
-            className="mb-3 bg-emerald-100 text-emerald-950"
-          >
-            Controle financeiro
-          </Badge>
+        <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div>
+            <Badge
+              variant="secondary"
+              className="mb-3 bg-emerald-100 text-emerald-950"
+            >
+              Controle financeiro
+            </Badge>
 
-          <div className="flex items-center gap-3">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-950 text-white">
-              <ReceiptText className="size-5" />
-            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-950 text-white">
+                <ReceiptText className="size-5" />
+              </div>
 
-            <div>
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Gastos
-              </h2>
+              <div>
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                  Gastos
+                </h2>
 
-              <p className="mt-1 max-w-3xl text-slate-500">
-                Acompanhe os gastos previstos e realizados
-                relacionados ao apartamento.
-              </p>
+                <p className="mt-1 max-w-3xl text-slate-500">
+                  Acompanhe os gastos previstos e realizados relacionados ao
+                  apartamento.
+                </p>
+              </div>
             </div>
           </div>
+
+          <CreateExpenseDialog
+            apartmentId={data.apartmentId}
+            categories={data.categories}
+          />
         </div>
 
         <ExpenseDashboard data={data} />
@@ -88,8 +87,8 @@ export default async function GastosPage() {
 
           <CardContent>
             <p className="text-sm text-red-800">
-              Verifique a conexão com o Supabase e as
-              políticas de acesso das novas tabelas.
+              Verifique a conexão com o Supabase e as políticas de acesso das
+              novas tabelas.
             </p>
           </CardContent>
         </Card>

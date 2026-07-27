@@ -26,10 +26,8 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  createExtraAmortization,
-  INITIAL_EXTRA_AMORTIZATION_STATE,
-} from "@/features/financiamento/actions/create-extra-amortization";
+import { INITIAL_EXTRA_AMORTIZATION_STATE } from "@/features/financiamento/actions/extra-amortization-action-state";
+import { createExtraAmortization } from "@/features/financiamento/actions/create-extra-amortization";
 
 interface ExtraAmortizationDialogProps {
   contractId: string;

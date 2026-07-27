@@ -30,6 +30,7 @@ export interface Expense {
   paidAt: string | null;
   status: ExpenseStatus;
   vendorName: string | null;
+  paymentMethod: string | null;
   notes: string | null;
   category: ExpenseCategory;
 }
@@ -38,4 +39,5 @@ export interface ExpenseDashboardData {
   apartmentId: string;
   apartmentName: string;
   expenses: Expense[];
+  categories: ExpenseCategory[];
 }
