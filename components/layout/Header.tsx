@@ -16,6 +16,11 @@ const sections = [
     title: "Controle do financiamento",
   },
   {
+  path: "/gastos",
+  eyebrow: "Gastos",
+  title: "Controle financeiro",
+  },
+  {
     path: "/obra",
     eyebrow: "Obra",
     title: "Acompanhamento da obra",

@@ -1,5 +1,5 @@
 import { AlertTriangle, Database } from "lucide-react";
-
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -20,6 +20,7 @@ import type {
 } from "@/features/financiamento/types";
 
 export default async function FinanciamentoPage() {
+  await connection();
   let contract: FinancingContract | null = null;
   let amortizations: ExtraAmortization[] = [];
 

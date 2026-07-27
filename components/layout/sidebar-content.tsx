@@ -12,6 +12,7 @@ import {
   Landmark,
   LayoutDashboard,
   Settings,
+  ReceiptText,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -26,6 +27,11 @@ const navigation = [
     name: "Financiamento",
     href: "/financiamento",
     icon: Landmark,
+  },
+  {
+  name: "Gastos",
+  href: "/gastos",
+  icon: ReceiptText,
   },
   {
     name: "Obra",
