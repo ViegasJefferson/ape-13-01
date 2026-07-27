@@ -58,3 +58,17 @@ export interface FinancingContract {
   startDate: string;
   notes: string | null;
 }
+
+export type ExtraAmortizationReductionType =
+  | "term"
+  | "payment";
+
+export interface ExtraAmortization {
+  id: string;
+  contractId: string;
+  amortizationDate: string;
+  amount: number;
+  reductionType: ExtraAmortizationReductionType;
+  notes: string | null;
+  createdAt: string;
+}
