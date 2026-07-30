@@ -8,6 +8,7 @@ import {
   Camera,
   CircleDollarSign,
   HardHat,
+  House,
   Landmark,
   PiggyBank,
   ReceiptText,
@@ -24,9 +25,13 @@ import {
 } from "@/components/ui/Card";
 import { Progress } from "@/components/ui/progress";
 import type { HomeDashboardData } from "@/features/dashboard/types";
+import type {
+  ApartmentCostSummary as ApartmentCostSummaryData,
+} from "@/features/gastos/types";
 
 interface HomeDashboardProps {
   data: HomeDashboardData;
+  costSummary: ApartmentCostSummaryData;
 }
 
 function formatCurrency(value: number) {
@@ -64,6 +69,7 @@ function formatPercentage(value: number) {
   return `${new Intl.NumberFormat(
     "pt-BR",
     {
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     },
   ).format(value)}%`;
@@ -71,6 +77,7 @@ function formatPercentage(value: number) {
 
 export function HomeDashboard({
   data,
+  costSummary,
 }: HomeDashboardProps) {
   const constructionProgress =
     data.construction?.overallProgress ?? 0;
@@ -87,6 +94,7 @@ export function HomeDashboard({
 
   return (
     <div className="space-y-6">
+      {/* Apresentação do apartamento */}
       <Card className="overflow-hidden rounded-2xl border-emerald-200 bg-emerald-50 shadow-sm">
         <CardContent className="flex flex-col justify-between gap-6 p-6 md:flex-row md:items-center">
           <div>
@@ -109,8 +117,7 @@ export function HomeDashboard({
                 Previsão de entrega:{" "}
                 <strong className="capitalize">
                   {formatMonthYear(
-                    data.apartment
-                      .deliveryDate,
+                    data.apartment.deliveryDate,
                   )}
                 </strong>
               </p>
@@ -127,6 +134,7 @@ export function HomeDashboard({
         </CardContent>
       </Card>
 
+      {/* Indicadores consolidados */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Evolução da obra"
@@ -136,8 +144,7 @@ export function HomeDashboard({
           description={
             data.construction
               ? `Atualização de ${formatMonthYear(
-                  data.construction
-                    .referenceMonth,
+                  data.construction.referenceMonth,
                 )}.`
               : "Nenhuma atualização cadastrada."
           }
@@ -145,35 +152,117 @@ export function HomeDashboard({
         />
 
         <MetricCard
-          title="Gastos pagos"
+          title="Desembolso total"
           value={formatCurrency(
-            data.expenses.totalPaid,
+            costSummary.totalCashOutflow,
           )}
-          description="Valores pagos no módulo de gastos."
+          description="Gastos, parcelas e amortizações efetivamente pagos."
           icon={CircleDollarSign}
         />
 
         <MetricCard
-          title="Taxa de obra"
+          title="Principal pago"
           value={formatCurrency(
-            data.expenses
-              .constructionFeePaid,
+            costSummary.acquisitionPrincipalPaid,
           )}
-          description="Total acumulado da evolução de obra."
-          icon={HardHat}
+          description="Valores que aumentam a participação quitada no imóvel."
+          icon={House}
         />
 
         <MetricCard
-          title="Amortizações"
+          title="Custos não patrimoniais"
           value={formatCurrency(
-            data.amortizations.totalAmount,
+            costSummary.nonPrincipalCostsPaid,
           )}
-          description={`${data.amortizations.count} amortização(ões) registrada(s).`}
-          icon={PiggyBank}
+          description="Juros, seguros, taxas e demais custos."
+          icon={ReceiptText}
         />
       </div>
 
+      {/* Progresso de quitação */}
+      {costSummary.purchasePrice !== null &&
+        costSummary.purchasePrincipalProgress !==
+          null && (
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader>
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                <div>
+                  <CardTitle>
+                    Quitação do valor de aquisição
+                  </CardTitle>
+
+                  <CardDescription className="mt-1">
+                    Percentual estimado do preço do
+                    apartamento já coberto pelo
+                    principal pago.
+                  </CardDescription>
+                </div>
+
+                <Badge className="bg-emerald-100 text-emerald-950">
+                  {formatPercentage(
+                    costSummary.purchasePrincipalProgress,
+                  )}
+                </Badge>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <Progress
+                value={
+                  costSummary.purchasePrincipalProgress
+                }
+                className="h-3"
+              />
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm text-slate-500">
+                    Valor de aquisição
+                  </p>
+
+                  <p className="mt-2 text-lg font-semibold">
+                    {formatCurrency(
+                      costSummary.purchasePrice,
+                    )}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm text-slate-500">
+                    Principal pago
+                  </p>
+
+                  <p className="mt-2 text-lg font-semibold">
+                    {formatCurrency(
+                      costSummary
+                        .acquisitionPrincipalPaid,
+                    )}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm text-slate-500">
+                    Principal restante
+                  </p>
+
+                  <p className="mt-2 text-lg font-semibold">
+                    {costSummary
+                      .remainingPurchasePrincipal ===
+                    null
+                      ? "Não informado"
+                      : formatCurrency(
+                          costSummary
+                            .remainingPurchasePrincipal,
+                        )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        {/* Situação financeira */}
         <Card className="rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle>
@@ -181,8 +270,8 @@ export function HomeDashboard({
             </CardTitle>
 
             <CardDescription>
-              Resumo do financiamento e dos
-              próximos compromissos.
+              Resumo do financiamento, custos
+              acumulados e próximos compromissos.
             </CardDescription>
           </CardHeader>
 
@@ -197,8 +286,7 @@ export function HomeDashboard({
 
                   <p className="text-xl font-semibold">
                     {formatCurrency(
-                      data.financing
-                        .financedAmount,
+                      data.financing.financedAmount,
                     )}
                   </p>
 
@@ -215,8 +303,7 @@ export function HomeDashboard({
 
                   <p className="text-xl font-semibold">
                     {formatCurrency(
-                      data.financing
-                        .basePayment,
+                      data.financing.basePayment,
                     )}
                   </p>
 
@@ -237,6 +324,55 @@ export function HomeDashboard({
               </div>
             )}
 
+            {/* Resumo de custos específicos */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border p-4">
+                <HardHat className="mb-3 size-5 text-emerald-900" />
+
+                <p className="text-sm text-slate-500">
+                  Taxa de obra
+                </p>
+
+                <p className="mt-2 text-lg font-semibold">
+                  {formatCurrency(
+                    data.expenses
+                      .constructionFeePaid,
+                  )}
+                </p>
+              </div>
+
+              <div className="rounded-xl border p-4">
+                <PiggyBank className="mb-3 size-5 text-emerald-900" />
+
+                <p className="text-sm text-slate-500">
+                  Amortizações
+                </p>
+
+                <p className="mt-2 text-lg font-semibold">
+                  {formatCurrency(
+                    costSummary
+                      .extraAmortizationsPaid,
+                  )}
+                </p>
+              </div>
+
+              <div className="rounded-xl border p-4">
+                <Landmark className="mb-3 size-5 text-emerald-900" />
+
+                <p className="text-sm text-slate-500">
+                  Parcelas pagas
+                </p>
+
+                <p className="mt-2 text-lg font-semibold">
+                  {formatCurrency(
+                    costSummary
+                      .financingPaymentsPaid,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Próximo vencimento */}
             <div className="flex flex-col justify-between gap-4 rounded-xl border bg-slate-50 p-4 sm:flex-row sm:items-center">
               <div>
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -257,8 +393,7 @@ export function HomeDashboard({
                       Vence em{" "}
                       {formatDate(
                         data.expenses
-                          .nextExpense
-                          .dueDate,
+                          .nextExpense.dueDate,
                       )}
                     </p>
                   </>
@@ -308,13 +443,14 @@ export function HomeDashboard({
                 href="/gastos"
                 className="inline-flex items-center gap-2 text-sm font-medium text-emerald-900 hover:underline"
               >
-                Ver todos os gastos
+                Ver custo completo
                 <ArrowRight className="size-4" />
               </Link>
             </div>
           </CardContent>
         </Card>
 
+        {/* Última imagem */}
         <Card className="overflow-hidden rounded-2xl shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
@@ -338,17 +474,15 @@ export function HomeDashboard({
               <div className="space-y-4">
                 <Link
                   href="/obra"
-                  className="block aspect-[4/3] overflow-hidden rounded-xl bg-slate-100"
+                  className="block aspect-4/3 overflow-hidden rounded-xl bg-slate-100"
                 >
                   <img
                     src={
-                      data.latestMedia
-                        .signedUrl
+                      data.latestMedia.signedUrl
                     }
                     alt={
                       data.latestMedia.title ||
-                      data.latestMedia
-                        .stageName ||
+                      data.latestMedia.stageName ||
                       "Última imagem da obra"
                     }
                     className="size-full object-cover transition-transform duration-300 hover:scale-[1.03]"
@@ -358,8 +492,7 @@ export function HomeDashboard({
                 <div>
                   <p className="font-medium">
                     {data.latestMedia.title ||
-                      data.latestMedia
-                        .stageName ||
+                      data.latestMedia.stageName ||
                       "Evolução da obra"}
                   </p>
 
@@ -372,7 +505,7 @@ export function HomeDashboard({
                 </div>
               </div>
             ) : (
-              <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-dashed text-center">
+              <div className="flex aspect-4/3 flex-col items-center justify-center rounded-xl border border-dashed text-center">
                 <Camera className="mb-3 size-8 text-slate-400" />
 
                 <p className="text-sm font-medium">
@@ -391,6 +524,7 @@ export function HomeDashboard({
         </Card>
       </div>
 
+      {/* Acesso rápido */}
       <Card className="rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>
@@ -414,8 +548,8 @@ export function HomeDashboard({
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Simulações, amortizações e
-              histórico.
+              Simulações, parcelas e
+              amortizações.
             </p>
 
             <ArrowRight className="mt-4 size-4 transition-transform group-hover:translate-x-1" />
@@ -432,8 +566,7 @@ export function HomeDashboard({
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Taxa de obra e demais
-              pagamentos.
+              Custos consolidados e taxa de obra.
             </p>
 
             <ArrowRight className="mt-4 size-4 transition-transform group-hover:translate-x-1" />
@@ -450,8 +583,7 @@ export function HomeDashboard({
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Percentuais, histórico e
-              galeria.
+              Percentuais, histórico e galeria.
             </p>
 
             <ArrowRight className="mt-4 size-4 transition-transform group-hover:translate-x-1" />

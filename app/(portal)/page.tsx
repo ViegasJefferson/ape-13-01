@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/Card";
 import { HomeDashboard } from "@/features/dashboard/components/home-dashboard";
 import { getHomeDashboardData } from "@/features/dashboard/services/get-home-dashboard-data";
+import { getApartmentCostSummary } from "@/features/gastos/services/get-apartment-cost-summary";
 
 export default async function HomePage() {
   await connection();
@@ -31,14 +32,19 @@ export default async function HomePage() {
               </p>
 
               <p className="mt-2 text-sm text-amber-800">
-                O usuário atual não está
-                associado a um apartamento.
+                O usuário atual não está associado
+                a um apartamento.
               </p>
             </CardContent>
           </Card>
         </section>
       );
     }
+
+    const costSummary =
+      await getApartmentCostSummary(
+        data.apartment.id,
+      );
 
     return (
       <section className="mx-auto max-w-7xl">
@@ -62,14 +68,17 @@ export default async function HomePage() {
 
               <p className="mt-1 max-w-3xl text-slate-500">
                 Acompanhe obra, financiamento,
-                gastos e os próximos compromissos
+                custos e os próximos compromissos
                 do Apê 13-01.
               </p>
             </div>
           </div>
         </div>
 
-        <HomeDashboard data={data} />
+        <HomeDashboard
+          data={data}
+          costSummary={costSummary}
+        />
       </section>
     );
   } catch (error) {
