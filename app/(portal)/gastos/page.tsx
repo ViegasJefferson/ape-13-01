@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ExpenseDashboard } from "@/features/gastos/components/expense-dashboard";
 import { getExpenseDashboardData } from "@/features/gastos/services/get-expense-dashboard-data";
 import { CreateExpenseDialog } from "@/features/gastos/components/create-expense-dialog";
+import { ApartmentCostSummary } from "@/features/gastos/components/apartment-cost-summary";
+import { getApartmentCostSummary } from "@/features/gastos/services/get-apartment-cost-summary";
 
 export default async function GastosPage() {
   await connection();
@@ -30,6 +32,8 @@ export default async function GastosPage() {
         </section>
       );
     }
+
+    const costSummary = await getApartmentCostSummary(data.apartmentId);
 
     return (
       <section className="mx-auto max-w-7xl">
@@ -66,7 +70,11 @@ export default async function GastosPage() {
           />
         </div>
 
-        <ExpenseDashboard data={data} />
+        <div className="space-y-10">
+          <ExpenseDashboard data={data} />
+
+          <ApartmentCostSummary summary={costSummary} />
+        </div>
       </section>
     );
   } catch (error) {
