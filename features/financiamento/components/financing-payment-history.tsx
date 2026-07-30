@@ -24,10 +24,14 @@ import {
 import { FinancingPaymentDialog } from "@/features/financiamento/components/financing-payment-dialog";
 import type { FinancingPayment } from "@/features/financiamento/types";
 
+import { LinkedDocumentsButton } from "@/features/documentos/components/linked-documents-button";
+import type { LinkedDocument } from "@/features/documentos/types";
+
 interface FinancingPaymentHistoryProps {
   contractId: string;
   payments: FinancingPayment[];
   nextInstallmentNumber: number;
+  documentsByPaymentId: Record<string, LinkedDocument[]>;
 }
 
 function formatCurrency(value: number) {
@@ -38,35 +42,31 @@ function formatCurrency(value: number) {
 }
 
 function formatDatabaseDate(date: string) {
-  const [year, month, day] = date
-    .split("-")
-    .map(Number);
+  const [year, month, day] = date.split("-").map(Number);
 
-  return new Intl.DateTimeFormat(
-    "pt-BR",
-  ).format(new Date(year, month - 1, day));
+  return new Intl.DateTimeFormat("pt-BR").format(
+    new Date(year, month - 1, day),
+  );
 }
 
 export function FinancingPaymentHistory({
   contractId,
   payments,
   nextInstallmentNumber,
+  documentsByPaymentId,
 }: FinancingPaymentHistoryProps) {
   const totalPaid = payments.reduce(
-    (total, payment) =>
-      total + payment.totalPaid,
+    (total, payment) => total + payment.totalPaid,
     0,
   );
 
   const totalPrincipal = payments.reduce(
-    (total, payment) =>
-      total + payment.principalAmount,
+    (total, payment) => total + payment.principalAmount,
     0,
   );
 
   const totalInterest = payments.reduce(
-    (total, payment) =>
-      total + payment.interestAmount,
+    (total, payment) => total + payment.interestAmount,
     0,
   );
 
@@ -91,15 +91,12 @@ export function FinancingPaymentHistory({
             <ReceiptText className="size-6" />
           </div>
 
-          <p className="font-medium">
-            Nenhuma parcela paga registrada
-          </p>
+          <p className="font-medium">Nenhuma parcela paga registrada</p>
 
           <p className="mt-2 max-w-lg text-sm leading-6 text-slate-500">
-            O financiamento está previsto para
-            começar em 2028. Quando a primeira
-            parcela for paga, registre os valores
-            apresentados pelo banco.
+            O financiamento está previsto para começar em 2028. Quando a
+            primeira parcela for paga, registre os valores apresentados pelo
+            banco.
           </p>
         </CardContent>
       </Card>
@@ -118,18 +115,14 @@ export function FinancingPaymentHistory({
 
         <MetricCard
           title="Principal amortizado"
-          value={formatCurrency(
-            totalPrincipal,
-          )}
+          value={formatCurrency(totalPrincipal)}
           description="Redução do saldo pelas parcelas."
           icon={Landmark}
         />
 
         <MetricCard
           title="Juros pagos"
-          value={formatCurrency(
-            totalInterest,
-          )}
+          value={formatCurrency(totalInterest)}
           description="Juros incluídos nas prestações."
           icon={ReceiptText}
         />
@@ -144,24 +137,17 @@ export function FinancingPaymentHistory({
 
       <Card className="rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle>
-            Parcelas pagas
-          </CardTitle>
+          <CardTitle>Parcelas pagas</CardTitle>
 
           <CardDescription>
-            Histórico real dos pagamentos do
-            financiamento.
-            {latestPayment?.remainingBalance !==
-              null &&
-              latestPayment?.remainingBalance !==
-                undefined && (
+            Histórico real dos pagamentos do financiamento.
+            {latestPayment?.remainingBalance !== null &&
+              latestPayment?.remainingBalance !== undefined && (
                 <>
                   {" "}
                   Último saldo informado:{" "}
                   <strong>
-                    {formatCurrency(
-                      latestPayment.remainingBalance,
-                    )}
+                    {formatCurrency(latestPayment.remainingBalance)}
                   </strong>
                   .
                 </>
@@ -171,36 +157,26 @@ export function FinancingPaymentHistory({
 
         <CardContent>
           <div className="w-full overflow-x-auto rounded-xl border">
-            <Table className="min-w-[1250px]">
+            <Table className="min-w-312.5">
               <TableHeader>
                 <TableRow>
                   <TableHead>Parcela</TableHead>
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Pagamento</TableHead>
 
-                  <TableHead className="text-right">
-                    Principal
-                  </TableHead>
+                  <TableHead className="text-right">Principal</TableHead>
 
-                  <TableHead className="text-right">
-                    Juros
-                  </TableHead>
+                  <TableHead className="text-right">Juros</TableHead>
 
-                  <TableHead className="text-right">
-                    Encargos
-                  </TableHead>
+                  <TableHead className="text-right">Encargos</TableHead>
 
-                  <TableHead className="text-right">
-                    Total
-                  </TableHead>
+                  <TableHead className="text-right">Total</TableHead>
 
-                  <TableHead className="text-right">
-                    Saldo
-                  </TableHead>
+                  <TableHead className="text-right">Saldo</TableHead>
 
-                  <TableHead className="text-right">
-                    Ações
-                  </TableHead>
+                  <TableHead>Documentos</TableHead>
+
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -220,29 +196,28 @@ export function FinancingPaymentHistory({
                       </TableCell>
 
                       <TableCell className="whitespace-nowrap">
-                        {formatDatabaseDate(
-                          payment.dueDate,
-                        )}
+                        {formatDatabaseDate(payment.dueDate)}
                       </TableCell>
 
                       <TableCell className="whitespace-nowrap">
                         {payment.paidAt
-                          ? formatDatabaseDate(
-                              payment.paidAt,
-                            )
+                          ? formatDatabaseDate(payment.paidAt)
                           : "—"}
                       </TableCell>
 
-                      <TableCell className="text-right">
-                        {formatCurrency(
-                          payment.principalAmount,
-                        )}
+                      <TableCell>
+                        <LinkedDocumentsButton
+                          documents={documentsByPaymentId[payment.id] ?? []}
+                          title={`Documentos da parcela ${payment.installmentNumber}`}
+                        />
                       </TableCell>
 
                       <TableCell className="text-right">
-                        {formatCurrency(
-                          payment.interestAmount,
-                        )}
+                        {formatCurrency(payment.principalAmount)}
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        {formatCurrency(payment.interestAmount)}
                       </TableCell>
 
                       <TableCell className="text-right">
@@ -250,26 +225,19 @@ export function FinancingPaymentHistory({
                       </TableCell>
 
                       <TableCell className="text-right font-semibold">
-                        {formatCurrency(
-                          payment.totalPaid,
-                        )}
+                        {formatCurrency(payment.totalPaid)}
                       </TableCell>
 
                       <TableCell className="text-right">
-                        {payment.remainingBalance ===
-                        null
+                        {payment.remainingBalance === null
                           ? "—"
-                          : formatCurrency(
-                              payment.remainingBalance,
-                            )}
+                          : formatCurrency(payment.remainingBalance)}
                       </TableCell>
 
                       <TableCell className="text-right">
                         <FinancingPaymentDialog
                           contractId={contractId}
-                          nextInstallmentNumber={
-                            nextInstallmentNumber
-                          }
+                          nextInstallmentNumber={nextInstallmentNumber}
                           payment={payment}
                         />
                       </TableCell>

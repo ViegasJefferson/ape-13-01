@@ -8,6 +8,7 @@ import { getExpenseDashboardData } from "@/features/gastos/services/get-expense-
 import { CreateExpenseDialog } from "@/features/gastos/components/create-expense-dialog";
 import { ApartmentCostSummary } from "@/features/gastos/components/apartment-cost-summary";
 import { getApartmentCostSummary } from "@/features/gastos/services/get-apartment-cost-summary";
+import { getLinkedDocumentsIndex } from "@/features/documentos/services/get-linked-documents-index";
 
 export default async function GastosPage() {
   await connection();
@@ -33,7 +34,11 @@ export default async function GastosPage() {
       );
     }
 
-    const costSummary = await getApartmentCostSummary(data.apartmentId);
+    const [costSummary, linkedDocuments] = await Promise.all([
+      getApartmentCostSummary(data.apartmentId),
+
+      getLinkedDocumentsIndex(data.apartmentId),
+    ]);
 
     return (
       <section className="mx-auto max-w-7xl">
@@ -71,7 +76,10 @@ export default async function GastosPage() {
         </div>
 
         <div className="space-y-10">
-          <ExpenseDashboard data={data} />
+          <ExpenseDashboard
+            data={data}
+            documentsByExpenseId={linkedDocuments.byExpenseId}
+          />
 
           <ApartmentCostSummary summary={costSummary} />
         </div>

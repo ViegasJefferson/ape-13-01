@@ -29,8 +29,12 @@ import type {
   ExpenseStatus,
 } from "@/features/gastos/types";
 
+import { LinkedDocumentsButton } from "@/features/documentos/components/linked-documents-button";
+import type { LinkedDocument } from "@/features/documentos/types";
+
 interface ExpenseDashboardProps {
   data: ExpenseDashboardData;
+  documentsByExpenseId: Record<string, LinkedDocument[]>;
 }
 
 const statusLabels: Record<ExpenseStatus, string> = {
@@ -96,7 +100,10 @@ function getNextExpense(expenses: Expense[]) {
   );
 }
 
-export function ExpenseDashboard({ data }: ExpenseDashboardProps) {
+export function ExpenseDashboard({
+  data,
+  documentsByExpenseId,
+}: ExpenseDashboardProps) {
   const currentYearMonth = getBrazilCurrentYearMonth();
 
   const totalPaid = data.expenses.reduce(
@@ -226,12 +233,15 @@ export function ExpenseDashboard({ data }: ExpenseDashboardProps) {
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
 
-                    <TableHead className="text-right">Previsto</TableHead>
+                    <TableHead className="text-center">Previsto</TableHead>
 
-                    <TableHead className="text-right">Pago</TableHead>
+                    <TableHead className="text-center">Pago</TableHead>
 
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+
+                    <TableHead>Documentos</TableHead>
+
+                    <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -273,6 +283,14 @@ export function ExpenseDashboard({ data }: ExpenseDashboardProps) {
                           {statusLabels[expense.status]}
                         </span>
                       </TableCell>
+
+                      <TableCell>
+                        <LinkedDocumentsButton
+                          documents={documentsByExpenseId[expense.id] ?? []}
+                          title={`Documentos de ${expense.title}`}
+                        />
+                      </TableCell>
+
                       <TableCell className="whitespace-nowrap text-right">
                         <UpdateExpenseDialog expense={expense} />
                       </TableCell>

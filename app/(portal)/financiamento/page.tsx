@@ -23,6 +23,7 @@ import type {
 import { ExtraAmortizationDialog } from "@/features/financiamento/components/extra-amortization-dialog";
 import { ExtraAmortizationHistory } from "@/features/financiamento/components/extra-amortization-history";
 import { getExtraAmortizations } from "@/features/financiamento/services/get-extra-amortizations";
+import { getLinkedDocumentsIndex } from "@/features/documentos/services/get-linked-documents-index";
 
 export default async function FinanciamentoPage() {
   await connection();
@@ -122,6 +123,21 @@ export default async function FinanciamentoPage() {
     );
   }
 
+  amortizations =
+      await getExtraAmortizations(
+        contract.id,
+      );
+
+    payments =
+      await getFinancingPayments(
+        contract.id,
+      );
+
+  const linkedDocuments =
+  await getLinkedDocumentsIndex(
+    contract.apartmentId,
+  );
+
   const nextInstallmentNumber =
     payments.length === 0
       ? 1
@@ -174,6 +190,7 @@ export default async function FinanciamentoPage() {
             contractId={contract.id}
             payments={payments}
             nextInstallmentNumber={nextInstallmentNumber}
+            documentsByPaymentId={linkedDocuments.byFinancingPaymentId}
           />
         </div>
 

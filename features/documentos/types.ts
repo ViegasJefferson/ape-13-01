@@ -61,3 +61,22 @@ export interface DocumentLinkOptions {
   expenses: DocumentExpenseOption[];
   payments: DocumentPaymentOption[];
 }
+
+export interface LinkedDocument {
+  id: string;
+  title: string;
+  documentType: ApartmentDocumentType;
+  originalFileName: string;
+  mimeType: string;
+  referenceDate: string | null;
+  isImportant: boolean;
+  signedUrl: string;
+}
+
+export interface LinkedDocumentsIndex {
+  byExpenseId: Record<string, LinkedDocument[]>;
+  byFinancingPaymentId: Record<
+    string,
+    LinkedDocument[]
+  >;
+}
