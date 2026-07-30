@@ -31,6 +31,8 @@ import { DocumentUploadDialog } from "@/features/documentos/components/document-
 import type {
   ApartmentDocument,
   ApartmentDocumentType,
+  DocumentExpenseOption,
+  DocumentPaymentOption,
 } from "@/features/documentos/types";
 import { createClient } from "@/lib/supabase/client";
 
@@ -38,6 +40,8 @@ interface DocumentsSectionProps {
   apartmentId: string;
   apartmentName: string;
   documents: ApartmentDocument[];
+  expenseOptions: DocumentExpenseOption[];
+  paymentOptions: DocumentPaymentOption[];
 }
 
 const documentTypeLabels: Record<ApartmentDocumentType, string> = {
@@ -89,6 +93,8 @@ export function DocumentsSection({
   apartmentId,
   apartmentName,
   documents,
+  expenseOptions,
+  paymentOptions,
 }: DocumentsSectionProps) {
   const router = useRouter();
 
@@ -188,7 +194,11 @@ export function DocumentsSection({
           </CardDescription>
         </div>
 
-        <DocumentUploadDialog apartmentId={apartmentId} />
+        <DocumentUploadDialog
+          apartmentId={apartmentId}
+          expenseOptions={expenseOptions}
+          paymentOptions={paymentOptions}
+        />
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -280,6 +290,18 @@ export function DocumentsSection({
                       <p className="mt-1 text-sm text-slate-500">
                         {documentTypeLabels[document.documentType]}
                       </p>
+
+                      {document.expenseTitle && (
+                        <Badge variant="outline" className="mt-2">
+                          Gasto: {document.expenseTitle}
+                        </Badge>
+                      )}
+
+                      {document.financingPaymentInstallmentNumber !== null && (
+                        <Badge variant="outline" className="mt-2">
+                          Parcela {document.financingPaymentInstallmentNumber}
+                        </Badge>
+                      )}
 
                       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                         <span>{formatFileSize(document.sizeBytes)}</span>

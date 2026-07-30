@@ -1,25 +1,17 @@
 import { connection } from "next/server";
-import {
-  AlertTriangle,
-  Files,
-} from "lucide-react";
+import { AlertTriangle, Files } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { DocumentsSection } from "@/features/documentos/components/documents-section";
 import { getDocumentsPageData } from "@/features/documentos/services/get-documents-page-data";
+import { getDocumentLinkOptions } from "@/features/documentos/services/get-document-link-options";
 
 export default async function DocumentosPage() {
   await connection();
 
   try {
-    const data =
-      await getDocumentsPageData();
+    const data = await getDocumentsPageData();
 
     if (!data) {
       return (
@@ -31,14 +23,15 @@ export default async function DocumentosPage() {
               </p>
 
               <p className="mt-2 text-sm text-amber-800">
-                O usuário atual não está
-                associado a um apartamento.
+                O usuário atual não está associado a um apartamento.
               </p>
             </CardContent>
           </Card>
         </section>
       );
     }
+
+    const linkOptions = await getDocumentLinkOptions(data.apartmentId);
 
     return (
       <section className="mx-auto max-w-7xl">
@@ -61,8 +54,7 @@ export default async function DocumentosPage() {
               </h1>
 
               <p className="mt-1 max-w-3xl text-slate-500">
-                Organize contratos, boletos,
-                comprovantes e documentos do
+                Organize contratos, boletos, comprovantes e documentos do
                 apartamento.
               </p>
             </div>
@@ -73,14 +65,13 @@ export default async function DocumentosPage() {
           apartmentId={data.apartmentId}
           apartmentName={data.apartmentName}
           documents={data.documents}
+          expenseOptions={linkOptions.expenses}
+          paymentOptions={linkOptions.payments}
         />
       </section>
     );
   } catch (error) {
-    console.error(
-      "Erro na página de documentos:",
-      error,
-    );
+    console.error("Erro na página de documentos:", error);
 
     return (
       <section className="mx-auto max-w-7xl">
@@ -91,16 +82,14 @@ export default async function DocumentosPage() {
             </div>
 
             <CardTitle className="text-red-950">
-              Não foi possível carregar os
-              documentos
+              Não foi possível carregar os documentos
             </CardTitle>
           </CardHeader>
 
           <CardContent>
             <p className="text-sm leading-6 text-red-800">
-              Verifique o bucket, as políticas
-              de acesso e a tabela de documentos
-              no Supabase.
+              Verifique o bucket, as políticas de acesso e a tabela de
+              documentos no Supabase.
             </p>
           </CardContent>
         </Card>

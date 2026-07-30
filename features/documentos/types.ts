@@ -29,10 +29,35 @@ export interface ApartmentDocument {
 
   createdAt: string;
   signedUrl: string;
+
+  expenseId: string | null;
+expenseTitle: string | null;
+expenseDueDate: string | null;
+
+financingPaymentId: string | null;
+financingPaymentInstallmentNumber: number | null;
+financingPaymentDueDate: string | null;
 }
 
 export interface DocumentsPageData {
   apartmentId: string;
   apartmentName: string;
   documents: ApartmentDocument[];
+}
+
+export interface DocumentExpenseOption {
+  id: string;
+  title: string;
+  dueDate: string;
+}
+
+export interface DocumentPaymentOption {
+  id: string;
+  installmentNumber: number;
+  dueDate: string;
+}
+
+export interface DocumentLinkOptions {
+  expenses: DocumentExpenseOption[];
+  payments: DocumentPaymentOption[];
 }
