@@ -9,6 +9,7 @@ import {
   Hammer,
   Home,
   Images,
+  Files,
   Landmark,
   LayoutDashboard,
   Settings,
@@ -39,6 +40,11 @@ const navigation = [
     icon: Building2,
   },
   {
+  name: "Documentos",
+  href: "/documentos",
+  icon: Files,
+  },
+  {
     name: "Reforma",
     href: "/reforma",
     icon: Hammer,
@@ -47,11 +53,6 @@ const navigation = [
     name: "Chá e enxoval",
     href: "/cha-e-enxoval",
     icon: Gift,
-  },
-  {
-    name: "Documentos",
-    href: "/documentos",
-    icon: FileText,
   },
   {
     name: "Galeria",
