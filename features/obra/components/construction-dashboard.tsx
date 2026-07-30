@@ -3,7 +3,7 @@ import {
   BrickWall,
   Building2,
   CalendarDays,
-  Camera,
+  
   Hammer,
   Landmark,
   Layers,
@@ -391,32 +391,6 @@ export function ConstructionDashboard({
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-2xl border-dashed shadow-sm">
-        <CardContent className="flex flex-col justify-between gap-5 p-6 sm:flex-row sm:items-center">
-          <div className="flex gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-950">
-              <Camera className="size-5" />
-            </div>
-
-            <div>
-              <p className="font-medium">
-                Galeria da obra
-              </p>
-
-              <p className="mt-1 text-sm text-slate-500">
-                As imagens e vídeos serão
-                organizados por mês e etapa da
-                construção.
-              </p>
-            </div>
-          </div>
-
-          <Badge variant="outline">
-            Próxima etapa
-          </Badge>
         </CardContent>
       </Card>
     </div>

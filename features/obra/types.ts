@@ -24,6 +24,26 @@ export interface ConstructionStage {
   notes: string | null;
 }
 
+export interface ConstructionMedia {
+  id: string;
+  apartmentId: string;
+  stageId: string | null;
+  stageName: string | null;
+  referenceMonth: string;
+  mediaType: "image" | "video";
+  bucketId: string;
+  storagePath: string;
+  originalFileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  title: string | null;
+  description: string | null;
+  sourceName: string | null;
+  capturedAt: string | null;
+  createdAt: string;
+  signedUrl: string;
+}
+
 export interface ConstructionDashboardData {
   apartmentId: string;
   apartmentName: string;

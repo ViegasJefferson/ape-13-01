@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ConstructionDashboard } from "@/features/obra/components/construction-dashboard";
 import { ConstructionUpdateDialog } from "@/features/obra/components/construction-update-dialog";
 import { getConstructionDashboardData } from "@/features/obra/services/get-construction-dashboard-data";
+import { ConstructionGallerySection } from "@/features/obra/components/construction-gallery-section";
+import { getConstructionMedia } from "@/features/obra/services/get-construction-media";
 
 export default async function ObraPage() {
   await connection();
@@ -30,6 +32,8 @@ export default async function ObraPage() {
         </section>
       );
     }
+
+    const media = await getConstructionMedia(data.apartmentId);
 
     return (
       <section className="mx-auto max-w-7xl">
@@ -67,7 +71,18 @@ export default async function ObraPage() {
           />
         </div>
 
-        <ConstructionDashboard data={data} />
+        <div className="space-y-6">
+          <ConstructionDashboard data={data} />
+
+          <ConstructionGallerySection
+            apartmentId={data.apartmentId}
+            stages={data.stages}
+            media={media}
+            defaultReferenceMonth={
+              data.currentUpdate?.referenceMonth.slice(0, 7) ?? "2026-07"
+            }
+          />
+        </div>
       </section>
     );
   } catch (error) {
