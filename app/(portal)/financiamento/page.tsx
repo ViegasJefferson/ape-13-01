@@ -11,24 +11,33 @@ import {
 import { FinancingSimulator } from "@/features/financiamento/components/financing-simulator";
 import { getActiveFinancingContract } from "@/features/financiamento/services/get-active-financing-contract";
 
-import { ExtraAmortizationDialog } from "@/features/financiamento/components/extra-amortization-dialog";
-import { ExtraAmortizationHistory } from "@/features/financiamento/components/extra-amortization-history";
-import { getExtraAmortizations } from "@/features/financiamento/services/get-extra-amortizations";
+import { FinancingPaymentDialog } from "@/features/financiamento/components/financing-payment-dialog";
+import { FinancingPaymentHistory } from "@/features/financiamento/components/financing-payment-history";
+import { getFinancingPayments } from "@/features/financiamento/services/get-financing-payments";
 import type {
   ExtraAmortization,
   FinancingContract,
+  FinancingPayment,
 } from "@/features/financiamento/types";
+
+import { ExtraAmortizationDialog } from "@/features/financiamento/components/extra-amortization-dialog";
+import { ExtraAmortizationHistory } from "@/features/financiamento/components/extra-amortization-history";
+import { getExtraAmortizations } from "@/features/financiamento/services/get-extra-amortizations";
 
 export default async function FinanciamentoPage() {
   await connection();
   let contract: FinancingContract | null = null;
   let amortizations: ExtraAmortization[] = [];
+  let payments: FinancingPayment[] = [];
 
   try {
     contract = await getActiveFinancingContract();
 
     if (contract) {
-      amortizations = await getExtraAmortizations(contract.id);
+      [amortizations, payments] = await Promise.all([
+        getExtraAmortizations(contract.id),
+        getFinancingPayments(contract.id),
+      ]);
     }
   } catch (error) {
     console.error(error);
@@ -113,6 +122,11 @@ export default async function FinanciamentoPage() {
     );
   }
 
+  const nextInstallmentNumber =
+    payments.length === 0
+      ? 1
+      : Math.max(...payments.map((payment) => payment.installmentNumber)) + 1;
+
   return (
     <section className="mx-auto max-w-7xl">
       <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -134,11 +148,49 @@ export default async function FinanciamentoPage() {
           </p>
         </div>
 
-        <ExtraAmortizationDialog contractId={contract.id} />
+        <div className="flex flex-wrap gap-3">
+          <FinancingPaymentDialog
+            contractId={contract.id}
+            nextInstallmentNumber={nextInstallmentNumber}
+          />
+
+          <ExtraAmortizationDialog contractId={contract.id} />
+        </div>
       </div>
 
       <div className="space-y-8">
-        <ExtraAmortizationHistory amortizations={amortizations} />
+        <div>
+          <div className="mb-5">
+            <h3 className="text-2xl font-semibold tracking-tight">
+              Pagamentos do financiamento
+            </h3>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Parcelas efetivamente pagas e composição dos valores cobrados.
+            </p>
+          </div>
+
+          <FinancingPaymentHistory
+            contractId={contract.id}
+            payments={payments}
+            nextInstallmentNumber={nextInstallmentNumber}
+          />
+        </div>
+
+        <div>
+          <div className="mb-5">
+            <h3 className="text-2xl font-semibold tracking-tight">
+              Amortizações extraordinárias
+            </h3>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Valores pagos além das parcelas mensais para reduzir o saldo ou o
+              prazo.
+            </p>
+          </div>
+
+          <ExtraAmortizationHistory amortizations={amortizations} />
+        </div>
 
         <div>
           <div className="mb-5">

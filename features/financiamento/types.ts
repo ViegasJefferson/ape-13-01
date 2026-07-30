@@ -72,3 +72,32 @@ export interface ExtraAmortization {
   notes: string | null;
   createdAt: string;
 }
+
+export interface FinancingPayment {
+  id: string;
+  contractId: string;
+  installmentNumber: number;
+  dueDate: string;
+  paidAt: string | null;
+
+  regularPayment: number;
+  interestAmount: number;
+  principalAmount: number;
+  trAdjustment: number;
+  mioAmount: number;
+  dfiAmount: number;
+  administrativeFee: number;
+  otherFees: number;
+
+  totalPaid: number;
+  remainingBalance: number | null;
+
+  paymentStatus:
+    | "planned"
+    | "paid"
+    | "overdue"
+    | "cancelled";
+
+  notes: string | null;
+  createdAt: string;
+}
