@@ -31,6 +31,7 @@ import type {
 
 import { LinkedDocumentsButton } from "@/features/documentos/components/linked-documents-button";
 import type { LinkedDocument } from "@/features/documentos/types";
+import { DocumentUploadDialog } from "@/features/documentos/components/document-upload-dialog";
 
 interface ExpenseDashboardProps {
   data: ExpenseDashboardData;
@@ -284,11 +285,34 @@ export function ExpenseDashboard({
                         </span>
                       </TableCell>
 
-                      <TableCell>
-                        <LinkedDocumentsButton
-                          documents={documentsByExpenseId[expense.id] ?? []}
-                          title={`Documentos de ${expense.title}`}
-                        />
+                      <TableCell className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {(documentsByExpenseId[expense.id]?.length ?? 0) >
+                            0 && (
+                            <LinkedDocumentsButton
+                              documents={documentsByExpenseId[expense.id] ?? []}
+                              title={`Documentos de ${expense.title}`}
+                            />
+                          )}
+
+                          <DocumentUploadDialog
+                            apartmentId={data.apartmentId}
+                            expenseOptions={[
+                              {
+                                id: expense.id,
+                                title: expense.title,
+                                dueDate: expense.dueDate,
+                              },
+                            ]}
+                            paymentOptions={[]}
+                            defaultLink={{
+                              type: "expense",
+                              id: expense.id,
+                            }}
+                            lockLink
+                            triggerLabel="Anexar"
+                          />
+                        </div>
                       </TableCell>
 
                       <TableCell className="whitespace-nowrap text-right">

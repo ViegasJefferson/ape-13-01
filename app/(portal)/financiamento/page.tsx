@@ -187,6 +187,7 @@ export default async function FinanciamentoPage() {
           </div>
 
           <FinancingPaymentHistory
+            apartmentId={contract.apartmentId}
             contractId={contract.id}
             payments={payments}
             nextInstallmentNumber={nextInstallmentNumber}

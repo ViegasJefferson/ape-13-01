@@ -24,11 +24,13 @@ import {
 import { FinancingPaymentDialog } from "@/features/financiamento/components/financing-payment-dialog";
 import type { FinancingPayment } from "@/features/financiamento/types";
 
+import { DocumentUploadDialog } from "@/features/documentos/components/document-upload-dialog";
 import { LinkedDocumentsButton } from "@/features/documentos/components/linked-documents-button";
 import type { LinkedDocument } from "@/features/documentos/types";
 
 interface FinancingPaymentHistoryProps {
   contractId: string;
+  apartmentId: string;
   payments: FinancingPayment[];
   nextInstallmentNumber: number;
   documentsByPaymentId: Record<string, LinkedDocument[]>;
@@ -51,6 +53,7 @@ function formatDatabaseDate(date: string) {
 
 export function FinancingPaymentHistory({
   contractId,
+  apartmentId,
   payments,
   nextInstallmentNumber,
   documentsByPaymentId,
@@ -205,11 +208,34 @@ export function FinancingPaymentHistory({
                           : "—"}
                       </TableCell>
 
-                      <TableCell>
-                        <LinkedDocumentsButton
-                          documents={documentsByPaymentId[payment.id] ?? []}
-                          title={`Documentos da parcela ${payment.installmentNumber}`}
-                        />
+                      <TableCell className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {(documentsByPaymentId[payment.id]?.length ?? 0) >
+                            0 && (
+                            <LinkedDocumentsButton
+                              documents={documentsByPaymentId[payment.id] ?? []}
+                              title={`Documentos da parcela ${payment.installmentNumber}`}
+                            />
+                          )}
+
+                          <DocumentUploadDialog
+                            apartmentId={apartmentId}
+                            expenseOptions={[]}
+                            paymentOptions={[
+                              {
+                                id: payment.id,
+                                installmentNumber: payment.installmentNumber,
+                                dueDate: payment.dueDate,
+                              },
+                            ]}
+                            defaultLink={{
+                              type: "payment",
+                              id: payment.id,
+                            }}
+                            lockLink
+                            triggerLabel="Anexar"
+                          />
+                        </div>
                       </TableCell>
 
                       <TableCell className="text-right">
