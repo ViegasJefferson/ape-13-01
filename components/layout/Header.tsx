@@ -36,9 +36,9 @@ const sections = [
   title: "Documentos",
   },
   {
-    path: "/reforma",
-    eyebrow: "Reforma",
-    title: "Planejamento da reforma",
+  path: "/reforma",
+  eyebrow: "Planejamento",
+  title: "Reforma",
   },
   {
     path: "/cha-e-enxoval",
@@ -60,11 +60,11 @@ const sections = [
   eyebrow: "Acesso compartilhado",
   title: "Configurações",
   },
-  {
-    path: "/configuracoes",
-    eyebrow: "Configurações",
-    title: "Preferências do sistema",
-  },
+  //{
+   // path: "/configuracoes",
+    //eyebrow: "Configurações",
+    //title: "Preferências do sistema",
+  //},
 ];
 
 export function Header() {
