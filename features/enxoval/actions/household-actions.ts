@@ -52,6 +52,10 @@ export async function saveHouseholdItem(
   const productUrl =
     input.productUrl?.trim() || null;
 
+const productImageUrl =
+  input.productImageUrl?.trim() ||
+  null;    
+
   const notes =
     input.notes?.trim() || null;
 
@@ -197,6 +201,19 @@ export async function saveHouseholdItem(
     };
   }
 
+  if (
+  productImageUrl &&
+  !/^https?:\/\//i.test(
+    productImageUrl,
+  )
+  ) {
+  return {
+    status: "error",
+    message:
+      "O link da imagem deve começar com http:// ou https://.",
+  };
+ }
+
   const supabase = await createClient();
 
   const {
@@ -242,6 +259,8 @@ export async function saveHouseholdItem(
 
     store_name: storeName,
     product_url: productUrl,
+    product_image_url:
+        productImageUrl,
     notes,
   };
 

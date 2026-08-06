@@ -27,6 +27,7 @@ export interface HouseholdItem {
 
   storeName: string | null;
   productUrl: string | null;
+  productImageUrl: string | null;
   notes: string | null;
 
   createdAt: string;
@@ -75,10 +76,26 @@ export interface SaveHouseholdItemInput {
 
   storeName: string | null;
   productUrl: string | null;
+  productImageUrl: string | null;
   notes: string | null;
 }
 
 export interface HouseholdActionResult {
   status: "success" | "error";
   message: string;
+}
+
+export interface ImportedProductData {
+  title: string | null;
+  imageUrl: string | null;
+  price: number | null;
+  currency: string | null;
+  storeName: string | null;
+  url: string;
+}
+
+export interface ProductImportApiResponse {
+  status: "success" | "error";
+  message: string;
+  product?: ImportedProductData;
 }

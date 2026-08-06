@@ -35,6 +35,7 @@ interface HouseholdItemRow {
 
   store_name: string | null;
   product_url: string | null;
+  product_image_url: string | null;
   notes: string | null;
 
   created_at: string;
@@ -149,6 +150,7 @@ export async function getHouseholdPageData(): Promise<
           actual_total_amount,
           store_name,
           product_url,
+          product_image_url,
           notes,
           created_at,
           updated_at
@@ -234,6 +236,7 @@ export async function getHouseholdPageData(): Promise<
 
       storeName: row.store_name,
       productUrl: row.product_url,
+      productImageUrl: row.product_image_url,
       notes: row.notes,
 
       createdAt: row.created_at,
