@@ -59,6 +59,11 @@ const navigation = [
     href: "/galeria",
     icon: Images,
   },
+  {
+  name: "Configurações",
+  href: "/configuracoes",
+  icon: Settings,
+  },
 ];
 
 interface SidebarContentProps {

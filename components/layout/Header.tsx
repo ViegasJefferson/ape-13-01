@@ -56,6 +56,11 @@ const sections = [
     title: "Fotos e registros",
   },
   {
+  path: "/configuracoes",
+  eyebrow: "Acesso compartilhado",
+  title: "Configurações",
+  },
+  {
     path: "/configuracoes",
     eyebrow: "Configurações",
     title: "Preferências do sistema",
