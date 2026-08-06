@@ -41,9 +41,9 @@ const sections = [
   title: "Reforma",
   },
   {
-    path: "/cha-e-enxoval",
-    eyebrow: "Chá e enxoval",
-    title: "Lista do novo lar",
+  path: "/enxoval",
+  eyebrow: "Lista do apartamento",
+  title: "Chá e enxoval",
   },
   {
     path: "/documentos",

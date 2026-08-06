@@ -51,7 +51,7 @@ const navigation = [
   },
   {
     name: "Chá e enxoval",
-    href: "/cha-e-enxoval",
+    href: "/enxoval",
     icon: Gift,
   },
   {
