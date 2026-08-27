@@ -30,6 +30,10 @@ import type {
   ReportsPageData,
 } from "@/features/relatorios/types";
 
+import {
+  BackupCard,
+} from "@/features/relatorios/components/backup-card";
+
 interface ReportsDashboardProps {
   data: ReportsPageData;
 }
@@ -819,6 +823,8 @@ export function ReportsDashboard({
           </CardContent>
         </Card>
       </div>
+
+      <BackupCard />
     </div>
   );
 }
