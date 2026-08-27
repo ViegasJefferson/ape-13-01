@@ -13,6 +13,7 @@ import {
   CalendarClock,
   Landmark,
   LayoutDashboard,
+  FileSpreadsheet,
   Settings,
   ReceiptText,
 } from "lucide-react";
@@ -64,6 +65,11 @@ const navigation = [
     name: "Galeria",
     href: "/galeria",
     icon: Images,
+  },
+  {
+  name: "Relatórios",
+  href: "/relatorios",
+  icon: FileSpreadsheet,
   },
   {
   name: "Configurações",
