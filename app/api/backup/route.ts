@@ -1,6 +1,4 @@
-import {
-  createClient,
-} from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,30 +11,17 @@ interface QueryResponse {
   error: QueryError | null;
 }
 
-function assertQuery(
-  label: string,
-  response: QueryResponse,
-) {
+function assertQuery(label: string, response: QueryResponse) {
   if (response.error) {
-    throw new Error(
-      `${label}: ${response.error.message}`,
-    );
+    throw new Error(`${label}: ${response.error.message}`);
   }
 }
 
-function sanitizeFilename(
-  value: string,
-) {
+function sanitizeFilename(value: string) {
   return value
     .normalize("NFD")
-    .replace(
-      /[\u0300-\u036f]/g,
-      "",
-    )
-    .replace(
-      /[^a-zA-Z0-9-_]/g,
-      "-",
-    )
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9-_]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
     .toLowerCase();
@@ -51,29 +36,21 @@ function createBackupTimestamp() {
 }
 
 export async function GET() {
-  const supabase =
-    await createClient();
+  const supabase = await createClient();
 
   try {
     // =====================================================
     // AUTENTICAÇÃO
     // =====================================================
 
-    const {
-      data: claimsData,
-      error: claimsError,
-    } =
+    const { data: claimsData, error: claimsError } =
       await supabase.auth.getClaims();
 
-    if (
-      claimsError ||
-      !claimsData?.claims?.sub
-    ) {
+    if (claimsError || !claimsData?.claims?.sub) {
       return Response.json(
         {
           status: "error",
-          message:
-            "Sua sessão expirou. Entre novamente.",
+          message: "Sua sessão expirou. Entre novamente.",
         },
         {
           status: 401,
@@ -88,33 +65,24 @@ export async function GET() {
     // apartamentos dos quais seja membro.
     // =====================================================
 
-    const apartmentResponse =
-      await supabase
-        .from("apartments")
-        .select("*")
-        .order(
-          "created_at",
-          {
-            ascending: true,
-          },
-        )
-        .limit(1)
-        .maybeSingle();
+    const apartmentResponse = await supabase
+      .from("apartments")
+      .select("*")
+      .order("created_at", {
+        ascending: true,
+      })
+      .limit(1)
+      .maybeSingle();
 
-    assertQuery(
-      "Apartamento",
-      apartmentResponse,
-    );
+    assertQuery("Apartamento", apartmentResponse);
 
-    const apartment =
-      apartmentResponse.data;
+    const apartment = apartmentResponse.data;
 
     if (!apartment) {
       return Response.json(
         {
           status: "error",
-          message:
-            "Nenhum apartamento disponível para backup.",
+          message: "Nenhum apartamento disponível para backup.",
         },
         {
           status: 404,
@@ -122,8 +90,7 @@ export async function GET() {
       );
     }
 
-    const apartmentId =
-      apartment.id;
+    const apartmentId = apartment.id;
 
     // =====================================================
     // DADOS VINCULADOS DIRETAMENTE AO APARTAMENTO
@@ -145,331 +112,182 @@ export async function GET() {
       renovationResponse,
       householdResponse,
 
+      galleryMediaResponse,
+
       remindersResponse,
     ] = await Promise.all([
       supabase
-        .from(
-          "expense_categories",
-        )
+        .from("expense_categories")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "expense_series",
-        )
+        .from("expense_series")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
+
+      supabase.from("expenses").select("*").eq("apartment_id", apartmentId),
 
       supabase
-        .from("expenses")
+        .from("financing_contracts")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "financing_contracts",
-        )
+        .from("construction_stages")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "construction_stages",
-        )
+        .from("construction_updates")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "construction_updates",
-        )
+        .from("construction_media")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "construction_media",
-        )
+        .from("apartment_documents")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "apartment_documents",
-        )
+        .from("renovation_items")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "renovation_items",
-        )
+        .from("household_items")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "household_items",
-        )
+        .from("apartment_reminders")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
 
       supabase
-        .from(
-          "apartment_reminders",
-        )
+        .from("apartment_media")
         .select("*")
-        .eq(
-          "apartment_id",
-          apartmentId,
-        ),
+        .eq("apartment_id", apartmentId),
     ]);
 
-    assertQuery(
-      "Categorias de gastos",
-      expenseCategoriesResponse,
-    );
+    assertQuery("Categorias de gastos", expenseCategoriesResponse);
 
-    assertQuery(
-      "Séries de gastos",
-      expenseSeriesResponse,
-    );
+    assertQuery("Séries de gastos", expenseSeriesResponse);
 
-    assertQuery(
-      "Gastos",
-      expensesResponse,
-    );
+    assertQuery("Gastos", expensesResponse);
 
-    assertQuery(
-      "Contratos de financiamento",
-      financingContractsResponse,
-    );
+    assertQuery("Contratos de financiamento", financingContractsResponse);
 
-    assertQuery(
-      "Etapas da obra",
-      constructionStagesResponse,
-    );
+    assertQuery("Etapas da obra", constructionStagesResponse);
 
-    assertQuery(
-      "Atualizações da obra",
-      constructionUpdatesResponse,
-    );
+    assertQuery("Atualizações da obra", constructionUpdatesResponse);
 
-    assertQuery(
-      "Mídias da obra",
-      constructionMediaResponse,
-    );
+    assertQuery("Mídias da obra", constructionMediaResponse);
 
-    assertQuery(
-      "Documentos",
-      documentsResponse,
-    );
+    assertQuery("Documentos", documentsResponse);
 
-    assertQuery(
-      "Reforma",
-      renovationResponse,
-    );
+    assertQuery("Reforma", renovationResponse);
 
-    assertQuery(
-      "Enxoval",
-      householdResponse,
-    );
+    assertQuery("Enxoval", householdResponse);
 
-    assertQuery(
-      "Agenda",
-      remindersResponse,
-    );
+    assertQuery("Agenda", remindersResponse);
+
+    assertQuery("Galeria", galleryMediaResponse);
 
     // =====================================================
     // FINANCIAMENTO
     // =====================================================
 
-    const financingContracts =
-      financingContractsResponse.data ??
-      [];
+    const financingContracts = financingContractsResponse.data ?? [];
 
-    const contractIds =
-      financingContracts.map(
-        (contract) =>
-          contract.id,
-      );
+    const contractIds = financingContracts.map((contract) => contract.id);
 
-    let financingPayments:
-      unknown[] = [];
+    let financingPayments: unknown[] = [];
 
-    let extraAmortizations:
-      unknown[] = [];
+    let extraAmortizations: unknown[] = [];
 
-    if (
-      contractIds.length > 0
-    ) {
-      const [
-        paymentsResponse,
-        amortizationsResponse,
-      ] = await Promise.all([
+    if (contractIds.length > 0) {
+      const [paymentsResponse, amortizationsResponse] = await Promise.all([
         supabase
-          .from(
-            "financing_payments",
-          )
+          .from("financing_payments")
           .select("*")
-          .in(
-            "contract_id",
-            contractIds,
-          ),
+          .in("contract_id", contractIds),
 
         supabase
-          .from(
-            "extra_amortizations",
-          )
+          .from("extra_amortizations")
           .select("*")
-          .in(
-            "contract_id",
-            contractIds,
-          ),
+          .in("contract_id", contractIds),
       ]);
 
-      assertQuery(
-        "Parcelas do financiamento",
-        paymentsResponse,
-      );
+      assertQuery("Parcelas do financiamento", paymentsResponse);
 
-      assertQuery(
-        "Amortizações",
-        amortizationsResponse,
-      );
+      assertQuery("Amortizações", amortizationsResponse);
 
-      financingPayments =
-        paymentsResponse.data ??
-        [];
+      financingPayments = paymentsResponse.data ?? [];
 
-      extraAmortizations =
-        amortizationsResponse.data ??
-        [];
+      extraAmortizations = amortizationsResponse.data ?? [];
     }
 
     // =====================================================
     // PROGRESSO DETALHADO DA OBRA
     // =====================================================
 
-    const constructionUpdates =
-      constructionUpdatesResponse.data ??
-      [];
+    const constructionUpdates = constructionUpdatesResponse.data ?? [];
 
-    const updateIds =
-      constructionUpdates.map(
-        (update) =>
-          update.id,
-      );
+    const updateIds = constructionUpdates.map((update) => update.id);
 
-    let constructionStageProgress:
-      unknown[] = [];
+    let constructionStageProgress: unknown[] = [];
 
-    if (
-      updateIds.length > 0
-    ) {
-      const progressResponse =
-        await supabase
-          .from(
-            "construction_stage_progress",
-          )
-          .select("*")
-          .in(
-            "construction_update_id",
-            updateIds,
-          );
+    if (updateIds.length > 0) {
+      const progressResponse = await supabase
+        .from("construction_stage_progress")
+        .select("*")
+        .in("construction_update_id", updateIds);
 
-      assertQuery(
-        "Progresso das etapas da obra",
-        progressResponse,
-      );
+      assertQuery("Progresso das etapas da obra", progressResponse);
 
-      constructionStageProgress =
-        progressResponse.data ??
-        [];
+      constructionStageProgress = progressResponse.data ?? [];
     }
 
     // =====================================================
     // ORGANIZA OS DADOS
     // =====================================================
 
-    const expenseCategories =
-      expenseCategoriesResponse.data ??
-      [];
+    const expenseCategories = expenseCategoriesResponse.data ?? [];
 
-    const expenseSeries =
-      expenseSeriesResponse.data ??
-      [];
+    const expenseSeries = expenseSeriesResponse.data ?? [];
 
-    const expenses =
-      expensesResponse.data ??
-      [];
+    const expenses = expensesResponse.data ?? [];
 
-    const constructionStages =
-      constructionStagesResponse.data ??
-      [];
+    const constructionStages = constructionStagesResponse.data ?? [];
 
-    const constructionMedia =
-      constructionMediaResponse.data ??
-      [];
+    const constructionMedia = constructionMediaResponse.data ?? [];
 
-    const documents =
-      documentsResponse.data ??
-      [];
+    const documents = documentsResponse.data ?? [];
 
-    const renovationItems =
-      renovationResponse.data ??
-      [];
+    const renovationItems = renovationResponse.data ?? [];
 
-    const householdItems =
-      householdResponse.data ??
-      [];
+    const householdItems = householdResponse.data ?? [];
 
-    const reminders =
-      remindersResponse.data ??
-      [];
+    const reminders = remindersResponse.data ?? [];
+
+    // =====================================================
+
+    const galleryMedia =galleryMediaResponse.data ?? [];
 
     // =====================================================
     // MANIFESTO DO BACKUP
     // =====================================================
 
-    const createdAt =
-      new Date().toISOString();
+    const createdAt = new Date().toISOString();
 
     const backup = {
       manifest: {
-        format:
-          "ape-13-01-backup",
+        format: "ape-13-01-backup",
 
         version: 1,
 
@@ -477,15 +295,12 @@ export async function GET() {
 
         apartmentId,
 
-        apartmentName:
-          apartment.name,
+        apartmentName: apartment.name,
 
         storage: {
-          physicalFilesIncluded:
-            false,
+          physicalFilesIncluded: false,
 
-          metadataIncluded:
-            true,
+          metadataIncluded: true,
 
           explanation:
             "Imagens e documentos físicos permanecem no Supabase Storage. O backup contém bucket, caminho e metadados dos arquivos.",
@@ -493,54 +308,41 @@ export async function GET() {
 
         authentication: {
           usersIncluded: false,
-          credentialsIncluded:
-            false,
+          credentialsIncluded: false,
         },
 
         counts: {
           apartments: 1,
 
-          expenseCategories:
-            expenseCategories.length,
+          expenseCategories: expenseCategories.length,
 
-          expenseSeries:
-            expenseSeries.length,
+          expenseSeries: expenseSeries.length,
 
-          expenses:
-            expenses.length,
+          expenses: expenses.length,
 
-          financingContracts:
-            financingContracts.length,
+          financingContracts: financingContracts.length,
 
-          financingPayments:
-            financingPayments.length,
+          financingPayments: financingPayments.length,
 
-          extraAmortizations:
-            extraAmortizations.length,
+          extraAmortizations: extraAmortizations.length,
 
-          constructionStages:
-            constructionStages.length,
+          constructionStages: constructionStages.length,
 
-          constructionUpdates:
-            constructionUpdates.length,
+          constructionUpdates: constructionUpdates.length,
 
-          constructionStageProgress:
-            constructionStageProgress.length,
+          constructionStageProgress: constructionStageProgress.length,
 
-          constructionMedia:
-            constructionMedia.length,
+          constructionMedia: constructionMedia.length,
 
-          apartmentDocuments:
-            documents.length,
+          apartmentDocuments: documents.length,
 
-          renovationItems:
-            renovationItems.length,
+          renovationItems: renovationItems.length,
 
-          householdItems:
-            householdItems.length,
+          householdItems: householdItems.length,
 
-          reminders:
-            reminders.length,
+          reminders: reminders.length,
+
+          apartmentMedia: galleryMedia.length,
         },
       },
 
@@ -548,57 +350,50 @@ export async function GET() {
 
       data: {
         expenses: {
-          categories:
-            expenseCategories,
+          categories: expenseCategories,
 
-          series:
-            expenseSeries,
+          series: expenseSeries,
 
-          items:
-            expenses,
+          items: expenses,
         },
 
         financing: {
-          contracts:
-            financingContracts,
+          contracts: financingContracts,
 
-          payments:
-            financingPayments,
+          payments: financingPayments,
 
           extraAmortizations,
         },
 
         construction: {
-          stages:
-            constructionStages,
+          stages: constructionStages,
 
-          updates:
-            constructionUpdates,
+          updates: constructionUpdates,
 
-          stageProgress:
-            constructionStageProgress,
+          stageProgress: constructionStageProgress,
 
-          media:
-            constructionMedia,
+          media: constructionMedia,
         },
 
         documents: {
-          items:
-            documents,
+          items: documents,
         },
 
         renovation: {
-          items:
-            renovationItems,
+          items: renovationItems,
         },
 
         household: {
-          items:
-            householdItems,
+          items: householdItems,
         },
 
         agenda: {
           reminders,
+        },
+
+        gallery: {
+        media:
+            galleryMedia,
         },
       },
     };
@@ -608,50 +403,31 @@ export async function GET() {
     // =====================================================
 
     const apartmentName =
-      sanitizeFilename(
-        apartment.name ||
-          "ape-13-01",
-      ) || "ape-13-01";
+      sanitizeFilename(apartment.name || "ape-13-01") || "ape-13-01";
 
-    const filename =
-      `${apartmentName}-backup-${createBackupTimestamp()}.json`;
+    const filename = `${apartmentName}-backup-${createBackupTimestamp()}.json`;
 
-    return new Response(
-      JSON.stringify(
-        backup,
-        null,
-        2,
-      ),
-      {
-        status: 200,
+    return new Response(JSON.stringify(backup, null, 2), {
+      status: 200,
 
-        headers: {
-          "Content-Type":
-            "application/json; charset=utf-8",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
 
-          "Content-Disposition":
-            `attachment; filename="${filename}"`,
+        "Content-Disposition": `attachment; filename="${filename}"`,
 
-          "Cache-Control":
-            "no-store",
+        "Cache-Control": "no-store",
 
-          "X-Content-Type-Options":
-            "nosniff",
-        },
+        "X-Content-Type-Options": "nosniff",
       },
-    );
+    });
   } catch (error) {
-    console.error(
-      "Erro ao gerar backup:",
-      error,
-    );
+    console.error("Erro ao gerar backup:", error);
 
     return Response.json(
       {
         status: "error",
 
-        message:
-          "Não foi possível gerar o backup do apartamento.",
+        message: "Não foi possível gerar o backup do apartamento.",
       },
       {
         status: 500,
