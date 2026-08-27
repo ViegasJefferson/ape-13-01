@@ -4,12 +4,15 @@ import { useMemo, useState, useTransition } from "react";
 
 import { useRouter } from "next/navigation";
 
+import Link from "next/link";
+
 import {
   CalendarClock,
   Check,
   CheckCircle2,
   CircleAlert,
   Clock3,
+  ExternalLink,
   RotateCcw,
   Search,
   Trash2,
@@ -19,7 +22,7 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 
 import { Badge } from "@/components/ui/badge";
 
-import { Button } from "@/components/ui/Button";
+import { Button, buttonVariants } from "@/components/ui/Button";
 
 import {
   Card,
@@ -366,7 +369,15 @@ export function AgendaDashboard({ data }: AgendaDashboardProps) {
                       </TableCell>
 
                       <TableCell>
-                        <p className="font-medium">{reminder.title}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium">{reminder.title}</p>
+
+                          {reminder.sourceType && (
+                            <Badge className="bg-sky-100 text-sky-900">
+                              Automático
+                            </Badge>
+                          )}
+                        </div>
 
                         {reminder.description && (
                           <p className="mt-1 max-w-xl text-xs text-slate-500">
@@ -392,7 +403,22 @@ export function AgendaDashboard({ data }: AgendaDashboardProps) {
                       <TableCell>{getStatusBadge(reminder)}</TableCell>
 
                       <TableCell className="whitespace-nowrap text-right">
-                        {data.canEdit ? (
+                        {reminder.sourceType ? (
+                          reminder.sourceHref ? (
+                            <Link
+                              href={reminder.sourceHref}
+                              className={buttonVariants({
+                                variant: "outline",
+                                size: "sm",
+                              })}
+                            >
+                              <ExternalLink className="size-4" />
+                              Abrir origem
+                            </Link>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )
+                        ) : data.canEdit ? (
                           <div className="flex justify-end gap-2">
                             <Button
                               type="button"
@@ -414,12 +440,10 @@ export function AgendaDashboard({ data }: AgendaDashboardProps) {
                               )}
                             </Button>
 
-                            {!reminder.sourceType && (
-                              <ReminderDialog
-                                apartmentId={data.apartmentId}
-                                reminder={reminder}
-                              />
-                            )}
+                            <ReminderDialog
+                              apartmentId={data.apartmentId}
+                              reminder={reminder}
+                            />
 
                             <Button
                               type="button"
@@ -433,7 +457,7 @@ export function AgendaDashboard({ data }: AgendaDashboardProps) {
                             </Button>
                           </div>
                         ) : (
-                          "—"
+                          <span className="text-slate-400">—</span>
                         )}
                       </TableCell>
                     </TableRow>

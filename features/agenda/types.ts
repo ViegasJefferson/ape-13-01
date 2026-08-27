@@ -32,6 +32,7 @@ export interface ApartmentReminder {
 
   sourceType: string | null;
   sourceId: string | null;
+  sourceHref: string | null;
 
   createdAt: string;
   updatedAt: string;
