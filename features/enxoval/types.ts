@@ -27,6 +27,7 @@ export interface HouseholdItem {
 
   storeName: string | null;
   productUrl: string | null;
+  additionalProductUrls: string[];
   productImageUrl: string | null;
   notes: string | null;
 
@@ -76,6 +77,7 @@ export interface SaveHouseholdItemInput {
 
   storeName: string | null;
   productUrl: string | null;
+  additionalProductUrls: string[];
   productImageUrl: string | null;
   notes: string | null;
 }

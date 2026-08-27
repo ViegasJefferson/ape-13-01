@@ -52,6 +52,23 @@ export async function saveHouseholdItem(
   const productUrl =
     input.productUrl?.trim() || null;
 
+  const additionalProductUrls =
+  Array.from(
+    new Set(
+      input.additionalProductUrls
+        .map((url) =>
+          url.trim(),
+        )
+        .filter(Boolean),
+    ),
+  ).slice(0, 10);
+
+const filteredAdditionalProductUrls =
+  additionalProductUrls.filter(
+    (url) =>
+      url !== productUrl,
+  );
+
 const productImageUrl =
   input.productImageUrl?.trim() ||
   null;    
@@ -201,6 +218,22 @@ const productImageUrl =
     };
   }
 
+  for (
+  const url of
+    additionalProductUrls
+) {
+  if (
+    !/^https?:\/\//i.test(url)
+  ) {
+    return {
+      status: "error",
+
+      message:
+        "Todos os links adicionais devem começar com http:// ou https://.",
+    };
+  }
+}
+
   if (
   productImageUrl &&
   !/^https?:\/\//i.test(
@@ -213,6 +246,7 @@ const productImageUrl =
       "O link da imagem deve começar com http:// ou https://.",
   };
  }
+
 
   const supabase = await createClient();
 
@@ -259,6 +293,10 @@ const productImageUrl =
 
     store_name: storeName,
     product_url: productUrl,
+
+    additional_product_urls:
+        filteredAdditionalProductUrls,
+        
     product_image_url:
         productImageUrl,
     notes,

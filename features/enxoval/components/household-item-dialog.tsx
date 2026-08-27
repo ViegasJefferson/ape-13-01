@@ -30,6 +30,10 @@ import type {
 
 import { ProductImportFields } from "@/features/enxoval/components/product-import-fields";
 
+import {
+  AdditionalProductLinks,
+} from "@/features/enxoval/components/additional-product-links";
+
 interface HouseholdItemDialogProps {
   apartmentId: string;
   item?: HouseholdItem;
@@ -59,6 +63,15 @@ export function HouseholdItemDialog({
 
     const form = event.currentTarget;
     const formData = new FormData(form);
+
+    const additionalProductUrls =
+      formData.getAll(
+       "additionalProductUrl",
+    )
+    .map((value) =>
+      String(value).trim(),
+    )
+    .filter(Boolean);
 
     const listType = String(
       formData.get("listType") ?? "trousseau",
@@ -97,6 +110,8 @@ export function HouseholdItemDialog({
         storeName: String(formData.get("storeName") ?? "") || null,
 
         productUrl: String(formData.get("productUrl") ?? "") || null,
+
+        additionalProductUrls,
 
         productImageUrl: String(formData.get("productImageUrl") ?? "") || null,
 
@@ -163,6 +178,13 @@ export function HouseholdItemDialog({
               defaultProductUrl={item?.productUrl ?? ""}
               defaultEstimatedUnitAmount={item?.estimatedUnitAmount ?? 0}
               defaultProductImageUrl={item?.productImageUrl ?? ""}
+            />
+            <AdditionalProductLinks
+              key={`links-${item?.id ?? "new"}-${open}`}
+              defaultUrls={
+                item?.additionalProductUrls ??
+                []
+              }
             />
 
             <div className="space-y-2">

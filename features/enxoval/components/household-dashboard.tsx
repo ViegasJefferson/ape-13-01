@@ -6,6 +6,7 @@ import {
   Banknote,
   CheckCircle2,
   ExternalLink,
+  Link2,
   Gift,
   PackageCheck,
   Search,
@@ -39,6 +40,8 @@ import {
 } from "@/components/ui/table";
 import { deleteHouseholdItem } from "@/features/enxoval/actions/household-actions";
 import { HouseholdItemDialog } from "@/features/enxoval/components/household-item-dialog";
+
+
 import type {
   HouseholdItemPriority,
   HouseholdListType,
@@ -431,6 +434,40 @@ export function HouseholdDashboard({ data }: HouseholdDashboardProps) {
                                   {item.storeName}
                                 </p>
                               )}
+                              <div className="flex flex-wrap items-center gap-2">
+                                {item.productUrl && (
+                                  <a
+                                    href={item.productUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs font-medium text-emerald-800 hover:underline"
+                                  >
+                                    <ExternalLink className="size-3" />
+
+                                    Principal
+                                  </a>
+                                )}
+
+                                {item.additionalProductUrls.map(
+                                  (
+                                    url,
+                                    index,
+                                  ) => (
+                                    <a
+                                      key={url}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-emerald-800 hover:underline"
+                                    >
+                                      <Link2 className="size-3" />
+
+                                      Opção {index + 2}
+                                    </a>
+                                  ),
+                                )}
+                              </div>
+
                             </div>
                           </div>
                         </TableCell>
