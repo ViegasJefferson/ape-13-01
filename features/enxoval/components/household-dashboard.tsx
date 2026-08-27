@@ -345,7 +345,7 @@ export function HouseholdDashboard({ data }: HouseholdDashboardProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border">
+            <div className="max-w-full overflow-x-auto rounded-xl border">
               <Table className="min-w-325">
                 <TableHeader>
                   <TableRow>
@@ -386,8 +386,8 @@ export function HouseholdDashboard({ data }: HouseholdDashboardProps) {
 
                     return (
                       <TableRow key={item.id}>
-                        <TableCell>
-                          <div className="flex min-w-72 items-start gap-3">
+                        <TableCell className="w-72 min-w-72 max-w-72">
+                          <div className="flex w-full items-start gap-3">
                             {item.productImageUrl && (
                               <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -403,12 +403,17 @@ export function HouseholdDashboard({ data }: HouseholdDashboardProps) {
                               </div>
                             )}
 
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-medium">{item.title}</p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start gap-2">
+                                <p
+                                  className="min-w-0 flex-1 whitespace-normal break-words [overflow-wrap:anywhere] font-medium leading-5"
+                                  title={item.title}
+                                >
+                                  {item.title}
+                                </p>
 
                                 {completed && (
-                                  <Badge className="bg-emerald-100 text-emerald-950">
+                                  <Badge className="shrink-0 bg-emerald-100 text-emerald-950">
                                     <CheckCircle2 className="mr-1 size-3" />
                                     Completo
                                   </Badge>
@@ -416,13 +421,13 @@ export function HouseholdDashboard({ data }: HouseholdDashboardProps) {
                               </div>
 
                               {item.room && (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 whitespace-normal break-words text-xs text-slate-500">
                                   {item.room}
                                 </p>
                               )}
 
                               {item.storeName && (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 whitespace-normal break-words text-xs text-slate-500">
                                   {item.storeName}
                                 </p>
                               )}
