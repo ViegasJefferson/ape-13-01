@@ -31,6 +31,11 @@ const sections = [
   title: "Evolução da obra",
   },
   {
+  path: "/agenda",
+  eyebrow: "Prazos e compromissos",
+  title: "Agenda",
+  },
+  {
   path: "/documentos",
   eyebrow: "Arquivos privados",
   title: "Documentos",

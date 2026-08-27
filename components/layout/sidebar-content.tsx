@@ -10,6 +10,7 @@ import {
   Home,
   Images,
   Files,
+  CalendarClock,
   Landmark,
   LayoutDashboard,
   Settings,
@@ -38,6 +39,11 @@ const navigation = [
     name: "Obra",
     href: "/obra",
     icon: Building2,
+  },
+  {
+  name: "Agenda",
+  href: "/agenda",
+  icon: CalendarClock,
   },
   {
   name: "Documentos",
