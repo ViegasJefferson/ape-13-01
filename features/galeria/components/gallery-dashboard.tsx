@@ -526,6 +526,15 @@ export function GalleryDashboard({
                 renovationOptions={
                   data.renovationOptions
                 }
+                architectureOptions={
+                  data.architectureOptions
+                }
+                linkedSourceType={
+                  linkedSourceType
+                }
+                linkedSourceId={
+                  linkedSourceId
+                }
               />
             )}
           </div>

@@ -82,7 +82,17 @@ interface GalleryUploadDialogProps {
 
   renovationOptions:
     GallerySourceOption[];
+
+  architectureOptions:
+    GallerySourceOption[];
+
+  linkedSourceType?:
+    string | null;
+
+  linkedSourceId?:
+    string | null;
 }
+
 
 function validateFiles(
   files: File[],
@@ -158,6 +168,9 @@ function removeExtension(
 export function GalleryUploadDialog({
   apartmentId,
   renovationOptions,
+  architectureOptions,
+  linkedSourceType = null,
+  linkedSourceId = null,
 }: GalleryUploadDialogProps) {
   const router =
     useRouter();
@@ -197,12 +210,21 @@ export function GalleryUploadDialog({
     "success" | "error"
   >("success");
 
+  const initialSection =
+  linkedSourceType ===
+  "renovation_item"
+    ? "renovation"
+    : linkedSourceType ===
+        "architecture_item"
+      ? "architecture"
+      : "architecture";
+
   const [
-  section,
-  setSection,
-] = useState(
-  "architecture",
-);
+    section,
+    setSection,
+  ] = useState(
+    initialSection,
+  );
 
   async function handleSubmit(
     event:
@@ -255,6 +277,15 @@ export function GalleryUploadDialog({
         ).trim()
       : "";
 
+    const architectureItemId =
+      section === "architecture"
+        ? String(
+            formData.get(
+              "architectureItemId",
+            ) ?? "",
+          ).trim()
+        : "";
+
     if (
       ![
         "architecture",
@@ -304,10 +335,33 @@ export function GalleryUploadDialog({
           )
         : undefined;
 
+    const selectedArchitectureItem =
+      architectureItemId
+        ? architectureOptions.find(
+            (item) =>
+              item.id ===
+              architectureItemId,
+          )
+        : undefined;
+
     const effectiveRoom =
       room ||
+      selectedArchitectureItem
+        ?.room ||
       selectedRenovationItem
         ?.room ||
+      null;
+
+    const sourceType =
+      architectureItemId
+        ? "architecture_item"
+        : renovationItemId
+          ? "renovation_item"
+          : null;
+
+    const sourceId =
+      architectureItemId ||
+      renovationItemId ||
       null;
 
     const referenceDate =
@@ -450,13 +504,10 @@ export function GalleryUploadDialog({
                 referenceDate,
 
               source_type:
-                renovationItemId
-                  ? "renovation_item"
-                  : null,
+                sourceType,
 
               source_id:
-                renovationItemId ||
-                null,
+                sourceId,
 
               bucket_id:
                 BUCKET_ID,
@@ -631,7 +682,13 @@ export function GalleryUploadDialog({
                 <NativeSelect
                   id="galleryRenovationItem"
                   name="renovationItemId"
-                  defaultValue=""
+                  defaultValue={
+                  linkedSourceType ===
+                    "renovation_item"
+                    ? linkedSourceId ??
+                      ""
+                    : ""
+                }
                 >
                   <NativeSelectOption value="">
                     Sem vínculo específico
@@ -656,6 +713,51 @@ export function GalleryUploadDialog({
                   Vincule a imagem a um
                   serviço ou etapa específica
                   da Reforma.
+                </p>
+              </div>
+            )}
+
+            {section ===
+              "architecture" && (
+              <div className="space-y-2">
+                <Label htmlFor="galleryArchitectureItem">
+                  Registro de arquitetura
+                </Label>
+
+                <NativeSelect
+                  id="galleryArchitectureItem"
+                  name="architectureItemId"
+                  defaultValue={
+                    linkedSourceType ===
+                      "architecture_item"
+                      ? linkedSourceId ??
+                        ""
+                      : ""
+                  }
+                >
+                  <NativeSelectOption value="">
+                    Sem vínculo específico
+                  </NativeSelectOption>
+
+                  {architectureOptions.map(
+                    (item) => (
+                      <NativeSelectOption
+                        key={item.id}
+                        value={item.id}
+                      >
+                        {item.title}
+                        {item.room
+                          ? ` — ${item.room}`
+                          : ""}
+                      </NativeSelectOption>
+                    ),
+                  )}
+                </NativeSelect>
+
+                <p className="text-xs leading-5 text-slate-500">
+                  Vincule a imagem a uma
+                  entrega, versão ou decisão
+                  específica do projeto.
                 </p>
               </div>
             )}

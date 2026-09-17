@@ -84,5 +84,7 @@ export interface GalleryPageData {
 
   renovationOptions: GallerySourceOption[];
 
+  architectureOptions: GallerySourceOption[];
+
   counts: GalleryCounts;
 }

@@ -80,6 +80,14 @@ interface RenovationGalleryRow {
   status: string;
 }
 
+interface ArchitectureGalleryRow {
+  id: string;
+  title: string;
+  room: string | null;
+  version_label: string | null;
+  status: string;
+}
+
 const genericSections: GallerySection[] = [
   "architecture",
   "renovation",
@@ -141,13 +149,14 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
   }
 
   const [
-    memberResponse,
-    apartmentMediaResponse,
-    householdResponse,
-    renovationResponse,
-    constructionMedia,
-    documentsData,
-  ] = await Promise.all([
+  memberResponse,
+  apartmentMediaResponse,
+  householdResponse,
+  renovationResponse,
+  architectureResponse,
+  constructionMedia,
+  documentsData,
+] = await Promise.all([
     supabase
       .from("apartment_members")
       .select("role")
@@ -220,6 +229,34 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
         ascending: true,
       }),
 
+    supabase
+      .from(
+        "architecture_items",
+      )
+      .select(
+        `
+          id,
+          title,
+          room,
+          version_label,
+          status
+        `,
+      )
+      .eq(
+        "apartment_id",
+        apartment.id,
+      )
+      .neq(
+        "status",
+        "cancelled",
+      )
+      .order(
+        "title",
+        {
+          ascending: true,
+        },
+      ),
+
     getConstructionMedia(apartment.id),
 
     getDocumentsPageData(),
@@ -251,6 +288,14 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
   );
   }
 
+  if (
+  architectureResponse.error
+  ) {
+  throw new Error(
+    `Não foi possível carregar os itens de arquitetura: ${architectureResponse.error.message}`,
+  );
+  }
+
   const member = memberResponse.data as MemberRow | null;
 
   const canEdit = member?.role === "owner" || member?.role === "editor";
@@ -268,6 +313,24 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
     room: item.area,
   }));
 
+  const architectureOptions:
+  GallerySourceOption[] =
+  (
+    (
+      architectureResponse.data ??
+      []
+    ) as ArchitectureGalleryRow[]
+  ).map((item) => ({
+    id: item.id,
+
+    title:
+      item.version_label
+        ? `${item.title} — ${item.version_label}`
+        : item.title,
+
+    room:
+      item.room,
+  }));
   // =======================================================
   // GALERIA PRÓPRIA
   // =======================================================
@@ -325,6 +388,17 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
             )
           : undefined;
 
+      const architectureItem =
+      row.source_type ===
+        "architecture_item" &&
+      row.source_id
+        ? architectureOptions.find(
+            (option) =>
+              option.id ===
+              row.source_id,
+          )
+        : undefined;    
+
       const item: GalleryItem = {
         id: `gallery:${row.id}`,
 
@@ -351,14 +425,18 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
         sourceType: "apartment_media",
 
         sourceLabel:
-          renovationItem
-            ? renovationItem.title
-            : "Galeria",
+          architectureItem
+            ? architectureItem.title
+            : renovationItem
+              ? renovationItem.title
+              : "Galeria",
 
         sourceHref:
-          renovationItem
-            ? `/reforma#reforma-${renovationItem.id}`
-            : null,
+          architectureItem
+            ? `/arquitetura#arquitetura-${architectureItem.id}`
+            : renovationItem
+              ? `/reforma#reforma-${renovationItem.id}`
+              : null,
 
         sourceId:
           row.id,
@@ -584,6 +662,8 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
     rooms,
 
     renovationOptions,
+
+    architectureOptions,
 
     counts: {
       total: items.length,
