@@ -14,6 +14,9 @@ import {
 import { HomeDashboard } from "@/features/dashboard/components/home-dashboard";
 import { getHomeDashboardData } from "@/features/dashboard/services/get-home-dashboard-data";
 import { getApartmentCostSummary } from "@/features/gastos/services/get-apartment-cost-summary";
+import {
+  ProjectOverview,
+} from "@/features/dashboard/components/project-overview";
 
 export default async function HomePage() {
   await connection();
@@ -75,10 +78,14 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <HomeDashboard
-          data={data}
-          costSummary={costSummary}
-        />
+        <div className="space-y-6">
+          <HomeDashboard
+            data={data}
+            costSummary={costSummary}
+          />
+
+          <ProjectOverview />
+        </div>
       </section>
     );
   } catch (error) {
