@@ -134,6 +134,30 @@ interface RenovationAgendaRow {
   vendor_name: string | null;
 }
 
+interface ArchitectureAgendaRow {
+  id: string;
+
+  apartment_id: string;
+
+  title: string;
+  room: string | null;
+
+  item_type: string;
+
+  status: string;
+  priority: string;
+
+  version_label: string | null;
+
+  target_date: string | null;
+  completed_at: string | null;
+
+  description: string | null;
+
+  created_at: string;
+  updated_at: string;
+}
+
 const validEventTypes: ReminderEventType[] = [
   "reminder",
   "payment",
@@ -316,6 +340,7 @@ export async function getAgendaPageData(): Promise<
     expensesResponse,
     contractsResponse,
     renovationResponse,
+    architectureResponse,
   ] = await Promise.all([
     supabase
       .from("apartment_members")
@@ -429,6 +454,41 @@ export async function getAgendaPageData(): Promise<
         "apartment_id",
         apartment.id,
       ),
+
+      supabase
+      .from(
+        "architecture_items",
+      )
+      .select(
+        `
+          id,
+          apartment_id,
+          title,
+          room,
+          item_type,
+          status,
+          priority,
+          version_label,
+          target_date,
+          completed_at,
+          description,
+          created_at,
+          updated_at
+        `,
+      )
+      .eq(
+        "apartment_id",
+        apartment.id,
+      )
+      .not(
+        "target_date",
+        "is",
+        null,
+      )
+      .neq(
+        "status",
+        "cancelled",
+      ),
   ]);
 
   if (memberResponse.error) {
@@ -466,6 +526,14 @@ export async function getAgendaPageData(): Promise<
   ) {
     throw new Error(
       `Não foi possível carregar os prazos da reforma: ${renovationResponse.error.message}`,
+    );
+  }
+
+  if (
+  architectureResponse.error
+  ) {
+    throw new Error(
+      `Não foi possível carregar os prazos da Arquitetura: ${architectureResponse.error.message}`,
     );
   }
 
@@ -976,6 +1044,84 @@ export async function getAgendaPageData(): Promise<
         };
       });
 
+
+  const architectureReminders: ApartmentReminder[] =
+  (
+    (
+      architectureResponse.data ??
+      []
+    ) as ArchitectureAgendaRow[]
+  ).map((row) => {
+    const details = [
+      row.room,
+      row.version_label
+        ? `Versão ${row.version_label}`
+        : null,
+      row.description,
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    const isCompleted =
+      row.status ===
+        "approved" ||
+      row.status ===
+        "completed";
+
+    return {
+      id:
+        `architecture:${row.id}`,
+
+      apartmentId:
+        row.apartment_id,
+
+      title:
+        row.version_label
+          ? `${row.title} — ${row.version_label}`
+          : row.title,
+
+      description:
+        details || null,
+
+      eventType:
+        "architecture",
+
+      priority:
+        row.priority ===
+          "high"
+          ? "high"
+          : row.priority ===
+              "low"
+            ? "low"
+            : "medium",
+
+      eventDate:
+        row.target_date as string,
+
+      eventTime:
+        null,
+
+      isCompleted,
+
+      completedAt:
+        row.completed_at,
+
+      sourceType:
+        "architecture_item",
+
+      sourceId:
+        row.id,
+
+      sourceHref:
+        `/arquitetura#arquitetura-${row.id}`,
+
+      createdAt:
+      row.created_at,
+
+      updatedAt:
+        row.updated_at,
+    };
+  });
   // =======================================================
   // AGENDA UNIFICADA
   // =======================================================
@@ -985,6 +1131,7 @@ export async function getAgendaPageData(): Promise<
     ...expenseReminders,
     ...financingReminders,
     ...renovationReminders,
+    ...architectureReminders,
   ];
 
   reminders.sort(

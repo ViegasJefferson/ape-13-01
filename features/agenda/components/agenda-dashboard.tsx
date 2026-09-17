@@ -73,6 +73,7 @@ const eventTypeLabels: Record<ReminderEventType, string> = {
   financing: "Financiamento",
   construction: "Obra",
   renovation: "Reforma",
+  architecture: "Arquitetura",
   document: "Documento",
   appointment: "Compromisso",
   other: "Outro",

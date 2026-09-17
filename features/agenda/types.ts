@@ -4,6 +4,7 @@ export type ReminderEventType =
   | "financing"
   | "construction"
   | "renovation"
+  | "architecture"
   | "document"
   | "appointment"
   | "other";
