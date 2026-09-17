@@ -112,6 +112,8 @@ export async function GET() {
       renovationResponse,
       householdResponse,
 
+      architectureResponse,
+
       galleryMediaResponse,
 
       remindersResponse,
@@ -172,6 +174,11 @@ export async function GET() {
         .from("apartment_media")
         .select("*")
         .eq("apartment_id", apartmentId),
+
+      supabase
+        .from("architecture_items")
+        .select("*")
+        .eq("apartment_id", apartmentId),
     ]);
 
     assertQuery("Categorias de gastos", expenseCategoriesResponse);
@@ -191,6 +198,8 @@ export async function GET() {
     assertQuery("Documentos", documentsResponse);
 
     assertQuery("Reforma", renovationResponse);
+
+    assertQuery("Arquitetura", architectureResponse);
 
     assertQuery("Enxoval", householdResponse);
 
@@ -277,7 +286,9 @@ export async function GET() {
 
     // =====================================================
 
-    const galleryMedia =galleryMediaResponse.data ?? [];
+    const galleryMedia = galleryMediaResponse.data ?? [];
+
+    const architectureItems = architectureResponse.data ?? [];
 
     // =====================================================
     // MANIFESTO DO BACKUP
@@ -340,6 +351,8 @@ export async function GET() {
 
           householdItems: householdItems.length,
 
+          architectureItems: architectureItems.length,
+
           reminders: reminders.length,
 
           apartmentMedia: galleryMedia.length,
@@ -391,9 +404,13 @@ export async function GET() {
           reminders,
         },
 
+        architecture: {
+          items:
+            architectureItems,
+        },
+
         gallery: {
-        media:
-            galleryMedia,
+          media: galleryMedia,
         },
       },
     };

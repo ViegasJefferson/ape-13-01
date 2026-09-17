@@ -16,6 +16,7 @@ import {
   FileSpreadsheet,
   Settings,
   ReceiptText,
+  Ruler,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -57,14 +58,19 @@ const navigation = [
     icon: Hammer,
   },
   {
-    name: "Chá e enxoval",
-    href: "/enxoval",
-    icon: Gift,
+  name: "Arquitetura",
+  href: "/arquitetura",
+  icon: Ruler,
   },
   {
     name: "Galeria",
     href: "/galeria",
     icon: Images,
+  },
+  {
+    name: "Chá e enxoval",
+    href: "/enxoval",
+    icon: Gift,
   },
   {
   name: "Relatórios",
