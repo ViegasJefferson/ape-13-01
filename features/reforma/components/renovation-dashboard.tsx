@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Hammer,
+  Images,
   Search,
   Trash2,
   TriangleAlert,
@@ -18,7 +19,10 @@ import {
 
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/Button";
+import {
+  Button,
+  buttonVariants,
+} from "@/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -47,6 +51,7 @@ import type {
   RenovationItemStatus,
   RenovationPageData,
 } from "@/features/reforma/types";
+import Link from "next/link";
 
 interface RenovationDashboardProps {
   data: RenovationPageData;
@@ -464,7 +469,11 @@ export function RenovationDashboard({
 
                 <TableBody>
                   {filteredItems.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow
+                      key={item.id}
+                      id={`reforma-${item.id}`}
+                      className="scroll-mt-24"
+                    >
                       <TableCell>
                         <div>
                           <p className="font-medium">
@@ -516,40 +525,50 @@ export function RenovationDashboard({
                       </TableCell>
 
                       <TableCell className="whitespace-nowrap text-right">
-                        {data.canEdit ? (
-                          <div className="flex justify-end gap-2">
-                            <RenovationItemDialog
-                              apartmentId={
-                                data.apartmentId
-                              }
-                              item={item}
-                            />
+                        <div className="flex justify-end gap-2">
+                          <Link
+                            href={`/galeria?sourceType=renovation_item&sourceId=${item.id}`}
+                            className={buttonVariants({
+                              variant: "outline",
+                              size: "sm",
+                            })}
+                          >
+                            <Images className="size-4" />
 
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              disabled={
-                                isPending ||
-                                deletingId ===
-                                  item.id
-                              }
-                              aria-label={`Excluir ${item.title}`}
-                              onClick={() =>
-                                handleDelete(
-                                  item.id,
-                                  item.title,
-                                )
-                              }
-                            >
-                              <Trash2 className="size-4 text-red-700" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400">
-                            —
-                          </span>
-                        )}
+                            Imagens
+                          </Link>
+
+                          {data.canEdit && (
+                            <>
+                              <RenovationItemDialog
+                                apartmentId={
+                                  data.apartmentId
+                                }
+                                item={item}
+                              />
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                disabled={
+                                  isPending ||
+                                  deletingId ===
+                                    item.id
+                                }
+                                aria-label={`Excluir ${item.title}`}
+                                onClick={() =>
+                                  handleDelete(
+                                    item.id,
+                                    item.title,
+                                  )
+                                }
+                              >
+                                <Trash2 className="size-4 text-red-700" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

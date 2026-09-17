@@ -2,22 +2,16 @@ import type {
   GalleryItem,
   GalleryPageData,
   GallerySection,
+  GallerySourceOption,
 } from "@/features/galeria/types";
 
-import {
-  getDocumentsPageData,
-} from "@/features/documentos/services/get-documents-page-data";
+import { getDocumentsPageData } from "@/features/documentos/services/get-documents-page-data";
 
-import {
-  getConstructionMedia,
-} from "@/features/obra/services/get-construction-media";
+import { getConstructionMedia } from "@/features/obra/services/get-construction-media";
 
-import {
-  createClient,
-} from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
-const GALLERY_BUCKET =
-  "apartment-media";
+const GALLERY_BUCKET = "apartment-media";
 
 interface ApartmentRow {
   id: string;
@@ -54,9 +48,7 @@ interface ApartmentMediaRow {
 
   mime_type: string;
 
-  size_bytes:
-    | number
-    | string;
+  size_bytes: number | string;
 
   created_at: string;
 }
@@ -81,62 +73,45 @@ interface HouseholdImageRow {
   created_at: string;
 }
 
-const genericSections:
-  GallerySection[] = [
-    "architecture",
-    "renovation",
-    "inspiration",
-    "other",
-  ];
-
-function isGenericSection(
-  value: string,
-): value is GallerySection {
-  return genericSections.includes(
-    value as GallerySection,
-  );
+interface RenovationGalleryRow {
+  id: string;
+  title: string;
+  area: string | null;
+  status: string;
 }
 
-function removeFileExtension(
-  value: string,
-) {
-  return value.replace(
-    /\.[^/.]+$/,
-    "",
-  );
+const genericSections: GallerySection[] = [
+  "architecture",
+  "renovation",
+  "inspiration",
+  "other",
+];
+
+function isGenericSection(value: string): value is GallerySection {
+  return genericSections.includes(value as GallerySection);
 }
 
-function getSortDate(
-  item: GalleryItem,
-) {
-  return (
-    item.referenceDate ??
-    item.createdAt
-  );
+function removeFileExtension(value: string) {
+  return value.replace(/\.[^/.]+$/, "");
 }
 
-export async function getGalleryPageData(): Promise<
-  GalleryPageData | null
-> {
-  const supabase =
-    await createClient();
+function getSortDate(item: GalleryItem) {
+  return item.referenceDate ?? item.createdAt;
+}
+
+export async function getGalleryPageData(): Promise<GalleryPageData | null> {
+  const supabase = await createClient();
 
   // =======================================================
   // APARTAMENTO
   // =======================================================
 
-  const {
-    data: apartmentData,
-    error: apartmentError,
-  } = await supabase
+  const { data: apartmentData, error: apartmentError } = await supabase
     .from("apartments")
     .select("id, name")
-    .order(
-      "created_at",
-      {
-        ascending: true,
-      },
-    )
+    .order("created_at", {
+      ascending: true,
+    })
     .limit(1)
     .maybeSingle();
 
@@ -150,57 +125,38 @@ export async function getGalleryPageData(): Promise<
     return null;
   }
 
-  const apartment =
-    apartmentData as ApartmentRow;
+  const apartment = apartmentData as ApartmentRow;
 
   // =======================================================
   // USUÁRIO / PERMISSÃO
   // =======================================================
 
-  const {
-    data: claimsData,
-    error: claimsError,
-  } =
+  const { data: claimsData, error: claimsError } =
     await supabase.auth.getClaims();
 
-  const userId =
-    claimsData?.claims?.sub;
+  const userId = claimsData?.claims?.sub;
 
-  if (
-    claimsError ||
-    !userId
-  ) {
-    throw new Error(
-      "Não foi possível identificar o usuário atual.",
-    );
+  if (claimsError || !userId) {
+    throw new Error("Não foi possível identificar o usuário atual.");
   }
 
   const [
     memberResponse,
     apartmentMediaResponse,
     householdResponse,
+    renovationResponse,
     constructionMedia,
     documentsData,
   ] = await Promise.all([
     supabase
-      .from(
-        "apartment_members",
-      )
+      .from("apartment_members")
       .select("role")
-      .eq(
-        "apartment_id",
-        apartment.id,
-      )
-      .eq(
-        "user_id",
-        userId,
-      )
+      .eq("apartment_id", apartment.id)
+      .eq("user_id", userId)
       .maybeSingle(),
 
     supabase
-      .from(
-        "apartment_media",
-      )
+      .from("apartment_media")
       .select(
         `
           id,
@@ -221,28 +177,17 @@ export async function getGalleryPageData(): Promise<
           created_at
         `,
       )
-      .eq(
-        "apartment_id",
-        apartment.id,
-      )
-      .order(
-        "reference_date",
-        {
-          ascending: false,
-          nullsFirst: false,
-        },
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false,
-        },
-      ),
+      .eq("apartment_id", apartment.id)
+      .order("reference_date", {
+        ascending: false,
+        nullsFirst: false,
+      })
+      .order("created_at", {
+        ascending: false,
+      }),
 
     supabase
-      .from(
-        "household_items",
-      )
+      .from("household_items")
       .select(
         `
           id,
@@ -256,19 +201,26 @@ export async function getGalleryPageData(): Promise<
           created_at
         `,
       )
-      .eq(
-        "apartment_id",
-        apartment.id,
-      )
-      .not(
-        "product_image_url",
-        "is",
-        null,
-      ),
+      .eq("apartment_id", apartment.id)
+      .not("product_image_url", "is", null),
 
-    getConstructionMedia(
-      apartment.id,
-    ),
+    supabase
+      .from("renovation_items")
+      .select(
+        `
+      id,
+      title,
+      area,
+      status
+    `,
+      )
+      .eq("apartment_id", apartment.id)
+      .neq("status", "cancelled")
+      .order("title", {
+        ascending: true,
+      }),
+
+    getConstructionMedia(apartment.id),
 
     getDocumentsPageData(),
   ]);
@@ -279,69 +231,60 @@ export async function getGalleryPageData(): Promise<
     );
   }
 
-  if (
-    apartmentMediaResponse.error
-  ) {
+  if (apartmentMediaResponse.error) {
     throw new Error(
       `Não foi possível carregar as imagens da galeria: ${apartmentMediaResponse.error.message}`,
     );
   }
 
-  if (
-    householdResponse.error
-  ) {
+  if (householdResponse.error) {
     throw new Error(
       `Não foi possível carregar as imagens do enxoval: ${householdResponse.error.message}`,
     );
   }
 
-  const member =
-    memberResponse.data as
-      | MemberRow
-      | null;
+  if (
+  renovationResponse.error
+  ) {
+  throw new Error(
+    `Não foi possível carregar os itens da reforma: ${renovationResponse.error.message}`,
+  );
+  }
 
-  const canEdit =
-    member?.role === "owner" ||
-    member?.role === "editor";
+  const member = memberResponse.data as MemberRow | null;
+
+  const canEdit = member?.role === "owner" || member?.role === "editor";
+
+  const renovationOptions:
+  GallerySourceOption[] =
+  (
+    (
+      renovationResponse.data ??
+      []
+    ) as RenovationGalleryRow[]
+  ).map((item) => ({
+    id: item.id,
+    title: item.title,
+    room: item.area,
+  }));
 
   // =======================================================
   // GALERIA PRÓPRIA
   // =======================================================
 
-  const apartmentMediaRows =
-    (
-      apartmentMediaResponse.data ??
-      []
-    ) as ApartmentMediaRow[];
+  const apartmentMediaRows = (apartmentMediaResponse.data ??
+    []) as ApartmentMediaRow[];
 
-  const apartmentMediaPaths =
-    apartmentMediaRows.map(
-      (item) =>
-        item.storage_path,
-    );
+  const apartmentMediaPaths = apartmentMediaRows.map(
+    (item) => item.storage_path,
+  );
 
-  const signedGalleryUrlByPath =
-    new Map<
-      string,
-      string
-    >();
+  const signedGalleryUrlByPath = new Map<string, string>();
 
-  if (
-    apartmentMediaPaths.length >
-    0
-  ) {
-    const {
-      data: signedFiles,
-      error: signedError,
-    } =
-      await supabase.storage
-        .from(
-          GALLERY_BUCKET,
-        )
-        .createSignedUrls(
-          apartmentMediaPaths,
-          3600,
-        );
+  if (apartmentMediaPaths.length > 0) {
+    const { data: signedFiles, error: signedError } = await supabase.storage
+      .from(GALLERY_BUCKET)
+      .createSignedUrls(apartmentMediaPaths, 3600);
 
     if (signedError) {
       throw new Error(
@@ -349,102 +292,90 @@ export async function getGalleryPageData(): Promise<
       );
     }
 
-    for (
-      const file of
-        signedFiles ?? []
-    ) {
-      if (
-        file.path &&
-        file.signedUrl
-      ) {
-        signedGalleryUrlByPath.set(
-          file.path,
-          file.signedUrl,
-        );
+    for (const file of signedFiles ?? []) {
+      if (file.path && file.signedUrl) {
+        signedGalleryUrlByPath.set(file.path, file.signedUrl);
       }
     }
   }
 
-  const genericItems: GalleryItem[] =
-  apartmentMediaRows.flatMap(
+  const genericItems: GalleryItem[] = apartmentMediaRows.flatMap(
     (row): GalleryItem[] => {
-      if (
-        !isGenericSection(
-          row.section,
-        )
-      ) {
+      if (!isGenericSection(row.section)) {
         return [];
       }
 
-      const signedUrl =
-        signedGalleryUrlByPath.get(
-          row.storage_path,
-        );
+      const signedUrl = signedGalleryUrlByPath.get(row.storage_path);
 
       if (!signedUrl) {
         return [];
       }
 
+      const linkedRenovation =
+        row.source_type ===
+          "renovation_item" &&
+        Boolean(row.source_id);
+
+      const renovationItem =
+        linkedRenovation
+          ? renovationOptions.find(
+              (option) =>
+                option.id ===
+                row.source_id,
+            )
+          : undefined;
+
       const item: GalleryItem = {
-        id:
-          `gallery:${row.id}`,
+        id: `gallery:${row.id}`,
 
-        entityId:
-          row.id,
+        entityId: row.id,
 
-        apartmentId:
-          row.apartment_id,
+        apartmentId: row.apartment_id,
 
-        section:
-          row.section,
+        section: row.section,
 
-        title:
-          row.title?.trim() ||
-          removeFileExtension(
-            row.original_file_name,
-          ),
+        title: row.title?.trim() || removeFileExtension(row.original_file_name),
 
-        description:
-          row.description,
+        description: row.description,
 
-        room:
-          row.room,
+        room: row.room,
 
-        tags:
-          row.tags ?? [],
+        tags: row.tags ?? [],
 
-        imageUrl:
-          signedUrl,
+        imageUrl: signedUrl,
 
-        referenceDate:
-          row.reference_date,
+        referenceDate: row.reference_date,
 
-        createdAt:
-          row.created_at,
+        createdAt: row.created_at,
 
-        sourceType:
-          "apartment_media",
+        sourceType: "apartment_media",
 
         sourceLabel:
-          "Galeria",
+          renovationItem
+            ? renovationItem.title
+            : "Galeria",
 
         sourceHref:
-          null,
+          renovationItem
+            ? `/reforma#reforma-${renovationItem.id}`
+            : null,
 
         sourceId:
           row.id,
 
-        isExternal:
-          false,
+        linkedSourceType:
+          row.source_type,
 
-        canDeleteHere:
-          canEdit,
+        linkedSourceId:
+          row.source_id,
 
-        bucketId:
-          row.bucket_id,
+        isExternal: false,
 
-        storagePath:
-          row.storage_path,
+        canDeleteHere: canEdit,
+
+        bucketId: row.bucket_id,
+
+        storagePath: row.storage_path,
       };
 
       return [item];
@@ -455,235 +386,164 @@ export async function getGalleryPageData(): Promise<
   // OBRA
   // =======================================================
 
-  const constructionItems:
-    GalleryItem[] =
-    constructionMedia
-      .filter(
-        (media) =>
-          media.mediaType ===
-          "image",
-      )
-      .map((media) => ({
-        id:
-          `construction:${media.id}`,
+  const constructionItems: GalleryItem[] = constructionMedia
+    .filter((media) => media.mediaType === "image")
+    .map((media) => ({
+      id: `construction:${media.id}`,
 
-        entityId:
-          media.id,
+      entityId: media.id,
 
-        apartmentId:
-          media.apartmentId,
+      apartmentId: media.apartmentId,
 
-        section:
-          "construction",
+      section: "construction",
 
-        title:
-          media.title?.trim() ||
-          media.stageName ||
-          removeFileExtension(
-            media.originalFileName,
-          ),
+      title:
+        media.title?.trim() ||
+        media.stageName ||
+        removeFileExtension(media.originalFileName),
 
-        description:
-          media.description,
+      description: media.description,
 
-        room:
-          null,
+      room: null,
 
-        tags:
-          media.stageName
-            ? [media.stageName]
-            : [],
+      tags: media.stageName ? [media.stageName] : [],
 
-        imageUrl:
-          media.signedUrl,
+      imageUrl: media.signedUrl,
 
-        referenceDate:
-          media.capturedAt ??
-          media.referenceMonth,
+      referenceDate: media.capturedAt ?? media.referenceMonth,
 
-        createdAt:
-          media.createdAt,
+      createdAt: media.createdAt,
 
-        sourceType:
-          "construction_media",
+      sourceType: "construction_media",
 
-        sourceLabel:
-          "Obra do apartamento",
+      sourceLabel: "Obra do apartamento",
 
-        sourceHref:
-          "/obra",
+      sourceHref: "/obra",
 
-        sourceId:
-          media.id,
+      sourceId: media.id,
 
-        isExternal:
-          false,
+      linkedSourceType:
+        "construction_media",
 
-        canDeleteHere:
-          false,
+      linkedSourceId:
+        media.id,
 
-        bucketId:
-          media.bucketId,
+      isExternal: false,
 
-        storagePath:
-          media.storagePath,
-      }));
+      canDeleteHere: false,
+
+      bucketId: media.bucketId,
+
+      storagePath: media.storagePath,
+    }));
 
   // =======================================================
   // ENXOVAL
   // =======================================================
 
-  const householdRows =
-    (
-      householdResponse.data ??
-      []
-    ) as HouseholdImageRow[];
+  const householdRows = (householdResponse.data ?? []) as HouseholdImageRow[];
 
-  const householdItems:
-    GalleryItem[] =
-    householdRows
-      .filter((row) =>
-        Boolean(
-          row.product_image_url,
-        ),
-      )
-      .map((row) => ({
-        id:
-          `household:${row.id}`,
+  const householdItems: GalleryItem[] = householdRows
+    .filter((row) => Boolean(row.product_image_url))
+    .map((row) => ({
+      id: `household:${row.id}`,
 
-        entityId:
-          row.id,
+      entityId: row.id,
 
-        apartmentId:
-          row.apartment_id,
+      apartmentId: row.apartment_id,
 
-        section:
-          "household",
+      section: "household",
 
-        title:
-          row.title,
+      title: row.title,
 
-        description:
-          row.store_name
-            ? `Produto cadastrado em ${row.store_name}.`
-            : "Produto cadastrado no chá e enxoval.",
+      description: row.store_name
+        ? `Produto cadastrado em ${row.store_name}.`
+        : "Produto cadastrado no chá e enxoval.",
 
-        room:
-          row.room,
+      room: row.room,
 
-        tags: [
-          row.category,
-        ].filter(Boolean),
+      tags: [row.category].filter(Boolean),
 
-        imageUrl:
-          row.product_image_url as string,
+      imageUrl: row.product_image_url as string,
 
-        referenceDate:
-          null,
+      referenceDate: null,
 
-        createdAt:
-          row.created_at,
+      createdAt: row.created_at,
 
-        sourceType:
-          "household_item",
+      sourceType: "household_item",
 
-        sourceLabel:
-          "Chá e enxoval",
+      sourceLabel: "Chá e enxoval",
 
-        sourceHref:
-          "/enxoval",
+      sourceHref: "/enxoval",
 
-        sourceId:
-          row.id,
+      sourceId: row.id,
 
-        isExternal:
-          true,
+      linkedSourceType:
+        "household_item",
 
-        canDeleteHere:
-          false,
+      linkedSourceId:
+        row.id,
 
-        bucketId:
-          null,
+      isExternal: true,
 
-        storagePath:
-          null,
-      }));
+      canDeleteHere: false,
+
+      bucketId: null,
+
+      storagePath: null,
+    }));
 
   // =======================================================
   // DOCUMENTOS QUE SÃO IMAGENS
   // =======================================================
 
-  const documentItems:
-    GalleryItem[] =
-    (
-      documentsData?.documents ??
-      []
-    )
-      .filter(
-        (document) =>
-          document.mimeType.startsWith(
-            "image/",
-          ),
-      )
-      .map((document) => ({
-        id:
-          `document:${document.id}`,
+  const documentItems: GalleryItem[] = (documentsData?.documents ?? [])
+    .filter((document) => document.mimeType.startsWith("image/"))
+    .map((document) => ({
+      id: `document:${document.id}`,
 
-        entityId:
-          document.id,
+      entityId: document.id,
 
-        apartmentId:
-          document.apartmentId,
+      apartmentId: document.apartmentId,
 
-        section:
-          "documents",
+      section: "documents",
 
-        title:
-          document.title,
+      title: document.title,
 
-        description:
-          document.description,
+      description: document.description,
 
-        room:
-          null,
+      room: null,
 
-        tags: [
-          document.documentType,
-        ],
+      tags: [document.documentType],
 
-        imageUrl:
-          document.signedUrl,
+      imageUrl: document.signedUrl,
 
-        referenceDate:
-          document.referenceDate,
+      referenceDate: document.referenceDate,
 
-        createdAt:
-          document.createdAt,
+      createdAt: document.createdAt,
 
-        sourceType:
-          "apartment_document",
+      sourceType: "apartment_document",
 
-        sourceLabel:
-          "Documentos",
+      sourceLabel: "Documentos",
 
-        sourceHref:
-          "/documentos",
+      sourceHref: "/documentos",
 
-        sourceId:
-          document.id,
+      sourceId: document.id,
 
-        isExternal:
-          false,
+      linkedSourceType:
+      "apartment_document",
 
-        canDeleteHere:
-          false,
+      linkedSourceId:
+        document.id,
 
-        bucketId:
-          document.bucketId,
+      isExternal: false,
 
-        storagePath:
-          document.storagePath,
-      }));
+      canDeleteHere: false,
+
+      bucketId: document.bucketId,
+
+      storagePath: document.storagePath,
+    }));
 
   // =======================================================
   // UNIFICA
@@ -696,52 +556,26 @@ export async function getGalleryPageData(): Promise<
     ...documentItems,
   ];
 
-  items.sort(
-    (first, second) =>
-      getSortDate(second)
-        .localeCompare(
-          getSortDate(first),
-        ),
+  items.sort((first, second) =>
+    getSortDate(second).localeCompare(getSortDate(first)),
   );
 
-  const rooms =
-    Array.from(
-      new Set(
-        items
-          .map(
-            (item) =>
-              item.room?.trim(),
-          )
-          .filter(
-            (
-              room,
-            ): room is string =>
-              Boolean(room),
-          ),
-      ),
-    ).sort((a, b) =>
-      a.localeCompare(
-        b,
-        "pt-BR",
-      ),
-    );
+  const rooms = Array.from(
+    new Set(
+      items
+        .map((item) => item.room?.trim())
+        .filter((room): room is string => Boolean(room)),
+    ),
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-  function countSection(
-    section: GallerySection,
-  ) {
-    return items.filter(
-      (item) =>
-        item.section ===
-        section,
-    ).length;
+  function countSection(section: GallerySection) {
+    return items.filter((item) => item.section === section).length;
   }
 
   return {
-    apartmentId:
-      apartment.id,
+    apartmentId: apartment.id,
 
-    apartmentName:
-      apartment.name,
+    apartmentName: apartment.name,
 
     canEdit,
 
@@ -749,44 +583,24 @@ export async function getGalleryPageData(): Promise<
 
     rooms,
 
+    renovationOptions,
+
     counts: {
-      total:
-        items.length,
+      total: items.length,
 
-      construction:
-        countSection(
-          "construction",
-        ),
+      construction: countSection("construction"),
 
-      architecture:
-        countSection(
-          "architecture",
-        ),
+      architecture: countSection("architecture"),
 
-      renovation:
-        countSection(
-          "renovation",
-        ),
+      renovation: countSection("renovation"),
 
-      household:
-        countSection(
-          "household",
-        ),
+      household: countSection("household"),
 
-      documents:
-        countSection(
-          "documents",
-        ),
+      documents: countSection("documents"),
 
-      inspiration:
-        countSection(
-          "inspiration",
-        ),
+      inspiration: countSection("inspiration"),
 
-      other:
-        countSection(
-          "other",
-        ),
+      other: countSection("other"),
     },
   };
 }

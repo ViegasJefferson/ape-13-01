@@ -42,6 +42,10 @@ export interface GalleryItem {
 
   sourceId: string;
 
+  linkedSourceType: string | null;
+
+  linkedSourceId: string | null;
+
   isExternal: boolean;
 
   canDeleteHere: boolean;
@@ -62,6 +66,12 @@ export interface GalleryCounts {
   other: number;
 }
 
+export interface GallerySourceOption {
+  id: string;
+  title: string;
+  room: string | null;
+}
+
 export interface GalleryPageData {
   apartmentId: string;
   apartmentName: string;
@@ -71,6 +81,8 @@ export interface GalleryPageData {
   items: GalleryItem[];
 
   rooms: string[];
+
+  renovationOptions: GallerySourceOption[];
 
   counts: GalleryCounts;
 }

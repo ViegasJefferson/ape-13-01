@@ -26,8 +26,48 @@ import {
   getGalleryPageData,
 } from "@/features/galeria/services/get-gallery-page-data";
 
-export default async function GalleryPage() {
+
+interface GalleryPageProps {
+  searchParams: Promise<{
+    sourceType?:
+      | string
+      | string[];
+
+    sourceId?:
+      | string
+      | string[];
+  }>;
+}
+
+function getSearchParam(
+  value:
+    | string
+    | string[]
+    | undefined,
+) {
+  return Array.isArray(value)
+    ? value[0] ?? null
+    : value ?? null;
+}
+
+
+export default async function GalleryPage({
+  searchParams,
+}: GalleryPageProps) {
   await connection();
+
+  const params =
+  await searchParams;
+
+const linkedSourceType =
+  getSearchParam(
+    params.sourceType,
+  );
+
+const linkedSourceId =
+  getSearchParam(
+    params.sourceId,
+  );
 
   try {
     const data =
@@ -76,6 +116,12 @@ export default async function GalleryPage() {
 
         <GalleryDashboard
           data={data}
+          linkedSourceType={
+            linkedSourceType
+          }
+          linkedSourceId={
+            linkedSourceId
+          }
         />
       </section>
     );

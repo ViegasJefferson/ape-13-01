@@ -73,6 +73,12 @@ import type {
 
 interface GalleryDashboardProps {
   data: GalleryPageData;
+
+  linkedSourceType?:
+    string | null;
+
+  linkedSourceId?:
+    string | null;
 }
 
 type GallerySectionFilter =
@@ -180,6 +186,8 @@ function SectionIcon({
 
 export function GalleryDashboard({
   data,
+  linkedSourceType = null,
+  linkedSourceId = null,
 }: GalleryDashboardProps) {
   const router =
     useRouter();
@@ -232,6 +240,23 @@ export function GalleryDashboard({
 
       return data.items.filter(
         (item) => {
+
+          if (
+            linkedSourceType &&
+            item.linkedSourceType !==
+              linkedSourceType
+          ) {
+            return false;
+          }
+
+          if (
+            linkedSourceId &&
+            item.linkedSourceId !==
+              linkedSourceId
+          ) {
+            return false;
+          }
+
           if (
             section !==
               "all" &&
@@ -275,6 +300,8 @@ export function GalleryDashboard({
       );
     }, [
       data.items,
+      linkedSourceId,
+      linkedSourceType,
       room,
       search,
       section,
@@ -496,6 +523,9 @@ export function GalleryDashboard({
                 apartmentId={
                   data.apartmentId
                 }
+                renovationOptions={
+                  data.renovationOptions
+                }
               />
             )}
           </div>
@@ -505,6 +535,32 @@ export function GalleryDashboard({
       {feedback && (
         <div className="rounded-xl border bg-slate-50 p-4 text-sm text-slate-700">
           {feedback}
+        </div>
+      )}
+
+      {linkedSourceId && (
+        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="font-medium text-sky-950">
+              Imagens vinculadas
+            </p>
+
+            <p className="mt-1 text-sm text-sky-800">
+              A Galeria está mostrando
+              somente as imagens vinculadas
+              ao registro selecionado.
+            </p>
+          </div>
+
+          <Link
+            href="/galeria"
+            className={buttonVariants({
+              variant: "outline",
+              size: "sm",
+            })}
+          >
+            Ver toda a galeria
+          </Link>
         </div>
       )}
 

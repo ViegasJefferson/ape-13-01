@@ -51,6 +51,10 @@ import {
   createClient,
 } from "@/lib/supabase/client";
 
+import type {
+  GallerySourceOption,
+} from "@/features/galeria/types";
+
 const BUCKET_ID =
   "apartment-media";
 
@@ -75,6 +79,9 @@ const extensionByMimeType:
 
 interface GalleryUploadDialogProps {
   apartmentId: string;
+
+  renovationOptions:
+    GallerySourceOption[];
 }
 
 function validateFiles(
@@ -150,6 +157,7 @@ function removeExtension(
 
 export function GalleryUploadDialog({
   apartmentId,
+  renovationOptions,
 }: GalleryUploadDialogProps) {
   const router =
     useRouter();
@@ -188,6 +196,13 @@ export function GalleryUploadDialog({
   ] = useState<
     "success" | "error"
   >("success");
+
+  const [
+  section,
+  setSection,
+] = useState(
+  "architecture",
+);
 
   async function handleSubmit(
     event:
@@ -231,6 +246,15 @@ export function GalleryUploadDialog({
         ) ?? "",
       );
 
+    const renovationItemId =
+    section === "renovation"
+      ? String(
+          formData.get(
+            "renovationItemId",
+          ) ?? "",
+        ).trim()
+      : "";
+
     if (
       ![
         "architecture",
@@ -270,6 +294,21 @@ export function GalleryUploadDialog({
           "room",
         ) ?? "",
       ).trim();
+
+    const selectedRenovationItem =
+      renovationItemId
+        ? renovationOptions.find(
+            (item) =>
+              item.id ===
+              renovationItemId,
+          )
+        : undefined;
+
+    const effectiveRoom =
+      room ||
+      selectedRenovationItem
+        ?.room ||
+      null;
 
     const referenceDate =
       String(
@@ -403,8 +442,7 @@ export function GalleryUploadDialog({
                 null,
 
               room:
-                room ||
-                null,
+                effectiveRoom,
 
               tags,
 
@@ -412,9 +450,12 @@ export function GalleryUploadDialog({
                 referenceDate,
 
               source_type:
-                null,
+                renovationItemId
+                  ? "renovation_item"
+                  : null,
 
               source_id:
+                renovationItemId ||
                 null,
 
               bucket_id:
@@ -552,11 +593,16 @@ export function GalleryUploadDialog({
               </Label>
 
               <NativeSelect
-                id="gallerySection"
-                name="section"
-                defaultValue="architecture"
-                required
-              >
+                  id="gallerySection"
+                  name="section"
+                  value={section}
+                  onChange={(event) =>
+                    setSection(
+                      event.target.value,
+                    )
+                  }
+                  required
+                >
                 <NativeSelectOption value="architecture">
                   Projeto de arquitetura
                 </NativeSelectOption>
@@ -574,6 +620,45 @@ export function GalleryUploadDialog({
                 </NativeSelectOption>
               </NativeSelect>
             </div>
+
+            {section ===
+              "renovation" && (
+              <div className="space-y-2">
+                <Label htmlFor="galleryRenovationItem">
+                  Item da reforma
+                </Label>
+
+                <NativeSelect
+                  id="galleryRenovationItem"
+                  name="renovationItemId"
+                  defaultValue=""
+                >
+                  <NativeSelectOption value="">
+                    Sem vínculo específico
+                  </NativeSelectOption>
+
+                  {renovationOptions.map(
+                    (item) => (
+                      <NativeSelectOption
+                        key={item.id}
+                        value={item.id}
+                      >
+                        {item.title}
+                        {item.room
+                          ? ` — ${item.room}`
+                          : ""}
+                      </NativeSelectOption>
+                    ),
+                  )}
+                </NativeSelect>
+
+                <p className="text-xs leading-5 text-slate-500">
+                  Vincule a imagem a um
+                  serviço ou etapa específica
+                  da Reforma.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="galleryReferenceDate">
