@@ -46,15 +46,15 @@ function OverviewCard({
       className="group block"
     >
       <Card className="h-full rounded-2xl transition hover:-translate-y-0.5 hover:shadow-md">
-        <CardContent className="flex h-full items-center gap-4 p-5">
+        <CardContent className="flex h-full min-w-0 items-center gap-4 p-4 sm:p-5">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-950">
             <Icon className="size-5" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start justify-between gap-3">
               <div>
-                <p className="font-medium text-slate-950">
+                <p className="break-words font-medium text-slate-950">
                   {title}
                 </p>
 
@@ -101,7 +101,7 @@ export async function ProjectOverview() {
       </CardHeader>
 
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
           <OverviewCard
             title="Reforma"
             value={String(

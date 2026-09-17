@@ -35,7 +35,7 @@ export default async function ArchitecturePage() {
 
     if (!data) {
       return (
-        <section className="mx-auto max-w-7xl">
+        <section className="mx-auto w-full max-w-[1680px]">
           <Card className="rounded-2xl border-amber-200 bg-amber-50">
             <CardContent className="p-6">
               Nenhum apartamento encontrado.
@@ -46,7 +46,7 @@ export default async function ArchitecturePage() {
     }
 
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <div className="mb-8">
           <Badge
             variant="secondary"
@@ -87,7 +87,7 @@ export default async function ArchitecturePage() {
     );
 
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <Card className="rounded-2xl border-red-200 bg-red-50">
           <CardHeader>
             <AlertTriangle className="size-6 text-red-800" />

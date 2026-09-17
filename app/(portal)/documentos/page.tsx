@@ -15,7 +15,7 @@ export default async function DocumentosPage() {
 
     if (!data) {
       return (
-        <section className="mx-auto max-w-7xl">
+        <section className="mx-auto w-full max-w-[1680px]">
           <Card className="rounded-2xl border-amber-200 bg-amber-50">
             <CardContent className="p-6">
               <p className="font-medium text-amber-950">
@@ -34,7 +34,7 @@ export default async function DocumentosPage() {
     const linkOptions = await getDocumentLinkOptions(data.apartmentId);
 
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <div className="mb-8">
           <Badge
             variant="secondary"
@@ -74,7 +74,7 @@ export default async function DocumentosPage() {
     console.error("Erro na página de documentos:", error);
 
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <Card className="rounded-2xl border-red-200 bg-red-50">
           <CardHeader>
             <div className="flex size-11 items-center justify-center rounded-2xl bg-red-100 text-red-800">

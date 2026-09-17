@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+
 import {
   ArrowRight,
   Building2,
@@ -14,8 +15,14 @@ import {
   ReceiptText,
 } from "lucide-react";
 
-import { MetricCard } from "@/components/dashboard/metric-card";
-import { Badge } from "@/components/ui/badge";
+import {
+  MetricCard,
+} from "@/components/dashboard/metric-card";
+
+import {
+  Badge,
+} from "@/components/ui/badge";
+
 import {
   Card,
   CardContent,
@@ -23,8 +30,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import { Progress } from "@/components/ui/progress";
-import type { HomeDashboardData } from "@/features/dashboard/types";
+
+import {
+  Progress,
+} from "@/components/ui/progress";
+
+import type {
+  HomeDashboardData,
+} from "@/features/dashboard/types";
+
 import type {
   ApartmentCostSummary as ApartmentCostSummaryData,
 } from "@/features/gastos/types";
@@ -34,38 +48,67 @@ interface HomeDashboardProps {
   costSummary: ApartmentCostSummaryData;
 }
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+function formatCurrency(
+  value: number,
+) {
+  return new Intl.NumberFormat(
+    "pt-BR",
+    {
+      style: "currency",
+      currency: "BRL",
+    },
+  ).format(value);
 }
 
-function parseDatabaseDate(date: string) {
-  const [year, month, day] = date
+function parseDatabaseDate(
+  date: string,
+) {
+  const [
+    year,
+    month,
+    day,
+  ] = date
     .split("-")
     .map(Number);
 
-  return new Date(year, month - 1, day);
+  return new Date(
+    year,
+    month - 1,
+    day,
+  );
 }
 
-function formatDate(date: string) {
+function formatDate(
+  date: string,
+) {
   return new Intl.DateTimeFormat(
     "pt-BR",
-  ).format(parseDatabaseDate(date));
+  ).format(
+    parseDatabaseDate(
+      date,
+    ),
+  );
 }
 
-function formatMonthYear(date: string) {
+function formatMonthYear(
+  date: string,
+) {
   return new Intl.DateTimeFormat(
     "pt-BR",
     {
       month: "long",
       year: "numeric",
     },
-  ).format(parseDatabaseDate(date));
+  ).format(
+    parseDatabaseDate(
+      date,
+    ),
+  );
 }
 
-function formatPercentage(value: number) {
+function formatPercentage(
+  value: number,
+) {
   return `${new Intl.NumberFormat(
     "pt-BR",
     {
@@ -80,44 +123,58 @@ export function HomeDashboard({
   costSummary,
 }: HomeDashboardProps) {
   const constructionProgress =
-    data.construction?.overallProgress ?? 0;
+    data.construction
+      ?.overallProgress ??
+    0;
 
-  const apartmentIdentification = [
-    data.apartment.projectName,
-    data.apartment.block,
-    data.apartment.unit
-      ? `Unidade ${data.apartment.unit}`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const apartmentIdentification =
+    [
+      data.apartment
+        .projectName,
+
+      data.apartment.block,
+
+      data.apartment.unit
+        ? `Unidade ${data.apartment.unit}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
   return (
-    <div className="space-y-6">
-      {/* Apresentação do apartamento */}
+    <div className="min-w-0 space-y-6">
+      {/* APRESENTAÇÃO DO APARTAMENTO */}
       <Card className="overflow-hidden rounded-2xl border-emerald-200 bg-emerald-50 shadow-sm">
-        <CardContent className="flex flex-col justify-between gap-6 p-6 md:flex-row md:items-center">
-          <div>
+        <CardContent className="flex min-w-0 flex-col justify-between gap-6 p-5 sm:p-6 md:flex-row md:items-center">
+          <div className="min-w-0">
             <Badge className="mb-3 bg-emerald-100 text-emerald-950">
               Nosso apartamento
             </Badge>
 
-            <h2 className="text-3xl font-semibold tracking-tight text-emerald-950 sm:text-4xl">
-              {data.apartment.name}
+            <h2 className="break-words text-2xl font-semibold tracking-tight text-emerald-950 sm:text-3xl lg:text-4xl">
+              {
+                data.apartment
+                  .name
+              }
             </h2>
 
             {apartmentIdentification && (
-              <p className="mt-2 text-emerald-800">
-                {apartmentIdentification}
+              <p className="mt-2 break-words text-sm text-emerald-800 sm:text-base">
+                {
+                  apartmentIdentification
+                }
               </p>
             )}
 
-            {data.apartment.deliveryDate && (
+            {data.apartment
+              .deliveryDate && (
               <p className="mt-4 text-sm text-emerald-800">
-                Previsão de entrega:{" "}
+                Previsão de
+                entrega:{" "}
                 <strong className="capitalize">
                   {formatMonthYear(
-                    data.apartment.deliveryDate,
+                    data.apartment
+                      .deliveryDate,
                   )}
                 </strong>
               </p>
@@ -126,16 +183,17 @@ export function HomeDashboard({
 
           <Link
             href="/obra"
-            className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-emerald-950 px-4 text-sm font-medium text-white transition-colors hover:bg-emerald-900 md:self-center"
+            className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-emerald-950 px-4 text-sm font-medium text-white transition-colors hover:bg-emerald-900 sm:w-auto md:self-center"
           >
             Acompanhar obra
+
             <ArrowRight className="size-4" />
           </Link>
         </CardContent>
       </Card>
 
-      {/* Indicadores consolidados */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* INDICADORES CONSOLIDADOS */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
         <MetricCard
           title="Evolução da obra"
           value={formatPercentage(
@@ -144,7 +202,8 @@ export function HomeDashboard({
           description={
             data.construction
               ? `Atualização de ${formatMonthYear(
-                  data.construction.referenceMonth,
+                  data.construction
+                    .referenceMonth,
                 )}.`
               : "Nenhuma atualização cadastrada."
           }
@@ -154,16 +213,20 @@ export function HomeDashboard({
         <MetricCard
           title="Desembolso total"
           value={formatCurrency(
-            costSummary.totalCashOutflow,
+            costSummary
+              .totalCashOutflow,
           )}
           description="Gastos, parcelas e amortizações efetivamente pagos."
-          icon={CircleDollarSign}
+          icon={
+            CircleDollarSign
+          }
         />
 
         <MetricCard
           title="Principal pago"
           value={formatCurrency(
-            costSummary.acquisitionPrincipalPaid,
+            costSummary
+              .acquisitionPrincipalPaid,
           )}
           description="Valores que aumentam a participação quitada no imóvel."
           icon={House}
@@ -172,35 +235,41 @@ export function HomeDashboard({
         <MetricCard
           title="Custos não patrimoniais"
           value={formatCurrency(
-            costSummary.nonPrincipalCostsPaid,
+            costSummary
+              .nonPrincipalCostsPaid,
           )}
           description="Juros, seguros, taxas e demais custos."
           icon={ReceiptText}
         />
       </div>
 
-      {/* Progresso de quitação */}
-      {costSummary.purchasePrice !== null &&
+      {/* PROGRESSO DE QUITAÇÃO */}
+      {costSummary.purchasePrice !==
+        null &&
         costSummary.purchasePrincipalProgress !==
           null && (
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="min-w-0 rounded-2xl shadow-sm">
             <CardHeader>
-              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                <div>
+              <div className="flex min-w-0 flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                <div className="min-w-0">
                   <CardTitle>
-                    Quitação do valor de aquisição
+                    Quitação do valor
+                    de aquisição
                   </CardTitle>
 
                   <CardDescription className="mt-1">
-                    Percentual estimado do preço do
-                    apartamento já coberto pelo
+                    Percentual
+                    estimado do preço
+                    do apartamento já
+                    coberto pelo
                     principal pago.
                   </CardDescription>
                 </div>
 
-                <Badge className="bg-emerald-100 text-emerald-950">
+                <Badge className="w-fit shrink-0 bg-emerald-100 text-emerald-950">
                   {formatPercentage(
-                    costSummary.purchasePrincipalProgress,
+                    costSummary
+                      .purchasePrincipalProgress,
                   )}
                 </Badge>
               </div>
@@ -209,30 +278,33 @@ export function HomeDashboard({
             <CardContent>
               <Progress
                 value={
-                  costSummary.purchasePrincipalProgress
+                  costSummary
+                    .purchasePrincipalProgress
                 }
                 className="h-3"
               />
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border p-4">
+              <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
+                <div className="min-w-0 rounded-xl border p-4">
                   <p className="text-sm text-slate-500">
-                    Valor de aquisição
+                    Valor de
+                    aquisição
                   </p>
 
-                  <p className="mt-2 text-lg font-semibold">
+                  <p className="mt-2 break-words text-lg font-semibold tabular-nums">
                     {formatCurrency(
-                      costSummary.purchasePrice,
+                      costSummary
+                        .purchasePrice,
                     )}
                   </p>
                 </div>
 
-                <div className="rounded-xl border p-4">
+                <div className="min-w-0 rounded-xl border p-4">
                   <p className="text-sm text-slate-500">
                     Principal pago
                   </p>
 
-                  <p className="mt-2 text-lg font-semibold">
+                  <p className="mt-2 break-words text-lg font-semibold tabular-nums">
                     {formatCurrency(
                       costSummary
                         .acquisitionPrincipalPaid,
@@ -240,12 +312,13 @@ export function HomeDashboard({
                   </p>
                 </div>
 
-                <div className="rounded-xl border p-4">
+                <div className="min-w-0 rounded-xl border p-4">
                   <p className="text-sm text-slate-500">
-                    Principal restante
+                    Principal
+                    restante
                   </p>
 
-                  <p className="mt-2 text-lg font-semibold">
+                  <p className="mt-2 break-words text-lg font-semibold tabular-nums">
                     {costSummary
                       .remainingPurchasePrincipal ===
                     null
@@ -261,49 +334,59 @@ export function HomeDashboard({
           </Card>
         )}
 
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        {/* Situação financeira */}
-        <Card className="rounded-2xl shadow-sm">
+      {/* FINANCEIRO + ÚLTIMA IMAGEM */}
+      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
+        {/* SITUAÇÃO FINANCEIRA */}
+        <Card className="min-w-0 rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle>
               Situação financeira
             </CardTitle>
 
             <CardDescription>
-              Resumo do financiamento, custos
-              acumulados e próximos compromissos.
+              Resumo do
+              financiamento, custos
+              acumulados e próximos
+              compromissos.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             {data.financing ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border p-4">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                <div className="min-w-0 rounded-xl border p-4">
                   <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
-                    <Landmark className="size-4" />
+                    <Landmark className="size-4 shrink-0" />
+
                     Valor financiado
                   </div>
 
-                  <p className="text-xl font-semibold">
+                  <p className="break-words text-xl font-semibold tabular-nums">
                     {formatCurrency(
-                      data.financing.financedAmount,
+                      data.financing
+                        .financedAmount,
                     )}
                   </p>
 
                   <p className="mt-1 text-xs text-slate-500">
-                    {data.financing.bankName}
+                    {
+                      data.financing
+                        .bankName
+                    }
                   </p>
                 </div>
 
-                <div className="rounded-xl border p-4">
+                <div className="min-w-0 rounded-xl border p-4">
                   <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
-                    <ReceiptText className="size-4" />
+                    <ReceiptText className="size-4 shrink-0" />
+
                     Parcela-base
                   </div>
 
-                  <p className="text-xl font-semibold">
+                  <p className="break-words text-xl font-semibold tabular-nums">
                     {formatCurrency(
-                      data.financing.basePayment,
+                      data.financing
+                        .basePayment,
                     )}
                   </p>
 
@@ -319,21 +402,22 @@ export function HomeDashboard({
               </div>
             ) : (
               <div className="rounded-xl border border-dashed p-5 text-sm text-slate-500">
-                Nenhum financiamento ativo
+                Nenhum
+                financiamento ativo
                 encontrado.
               </div>
             )}
 
-            {/* Resumo de custos específicos */}
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border p-4">
+            {/* RESUMO DE CUSTOS */}
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4">
+              <div className="min-w-0 rounded-xl border p-4">
                 <HardHat className="mb-3 size-5 text-emerald-900" />
 
                 <p className="text-sm text-slate-500">
                   Taxa de obra
                 </p>
 
-                <p className="mt-2 text-lg font-semibold">
+                <p className="mt-2 break-words text-lg font-semibold tabular-nums">
                   {formatCurrency(
                     data.expenses
                       .constructionFeePaid,
@@ -341,14 +425,14 @@ export function HomeDashboard({
                 </p>
               </div>
 
-              <div className="rounded-xl border p-4">
+              <div className="min-w-0 rounded-xl border p-4">
                 <PiggyBank className="mb-3 size-5 text-emerald-900" />
 
                 <p className="text-sm text-slate-500">
                   Amortizações
                 </p>
 
-                <p className="mt-2 text-lg font-semibold">
+                <p className="mt-2 break-words text-lg font-semibold tabular-nums">
                   {formatCurrency(
                     costSummary
                       .extraAmortizationsPaid,
@@ -356,14 +440,14 @@ export function HomeDashboard({
                 </p>
               </div>
 
-              <div className="rounded-xl border p-4">
+              <div className="min-w-0 rounded-xl border p-4">
                 <Landmark className="mb-3 size-5 text-emerald-900" />
 
                 <p className="text-sm text-slate-500">
                   Parcelas pagas
                 </p>
 
-                <p className="mt-2 text-lg font-semibold">
+                <p className="mt-2 break-words text-lg font-semibold tabular-nums">
                   {formatCurrency(
                     costSummary
                       .financingPaymentsPaid,
@@ -372,20 +456,23 @@ export function HomeDashboard({
               </div>
             </div>
 
-            {/* Próximo vencimento */}
-            <div className="flex flex-col justify-between gap-4 rounded-xl border bg-slate-50 p-4 sm:flex-row sm:items-center">
-              <div>
+            {/* PRÓXIMO VENCIMENTO */}
+            <div className="flex min-w-0 flex-col justify-between gap-4 rounded-xl border bg-slate-50 p-4 sm:flex-row sm:items-center">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <CalendarClock className="size-4 text-emerald-800" />
+                  <CalendarClock className="size-4 shrink-0 text-emerald-800" />
+
                   Próximo vencimento
                 </div>
 
-                {data.expenses.nextExpense ? (
+                {data.expenses
+                  .nextExpense ? (
                   <>
-                    <p className="mt-2 font-medium">
+                    <p className="mt-2 break-words font-medium">
                       {
                         data.expenses
-                          .nextExpense.title
+                          .nextExpense
+                          .title
                       }
                     </p>
 
@@ -393,27 +480,31 @@ export function HomeDashboard({
                       Vence em{" "}
                       {formatDate(
                         data.expenses
-                          .nextExpense.dueDate,
+                          .nextExpense
+                          .dueDate,
                       )}
                     </p>
                   </>
                 ) : (
                   <p className="mt-2 text-sm text-slate-500">
-                    Nenhum vencimento pendente.
+                    Nenhum vencimento
+                    pendente.
                   </p>
                 )}
               </div>
 
-              {data.expenses.nextExpense && (
-                <div className="sm:text-right">
+              {data.expenses
+                .nextExpense && (
+                <div className="shrink-0 sm:text-right">
                   <p className="text-xs uppercase tracking-wide text-slate-500">
                     Valor previsto
                   </p>
 
-                  <p className="mt-1 text-xl font-semibold">
+                  <p className="mt-1 break-words text-xl font-semibold tabular-nums">
                     {data.expenses
                       .nextExpense
-                      .plannedAmount === null
+                      .plannedAmount ===
+                    null
                       ? "A informar"
                       : formatCurrency(
                           data.expenses
@@ -425,13 +516,14 @@ export function HomeDashboard({
               )}
             </div>
 
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <div>
+            <div className="flex min-w-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">
-                  Valores previstos pendentes
+                  Valores previstos
+                  pendentes
                 </p>
 
-                <p className="mt-1 text-xl font-semibold">
+                <p className="mt-1 break-words text-xl font-semibold tabular-nums">
                   {formatCurrency(
                     data.expenses
                       .pendingPlanned,
@@ -441,31 +533,33 @@ export function HomeDashboard({
 
               <Link
                 href="/gastos"
-                className="inline-flex items-center gap-2 text-sm font-medium text-emerald-900 hover:underline"
+                className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-emerald-900 hover:underline"
               >
                 Ver custo completo
+
                 <ArrowRight className="size-4" />
               </Link>
             </div>
           </CardContent>
         </Card>
 
-        {/* Última imagem */}
-        <Card className="overflow-hidden rounded-2xl shadow-sm">
+        {/* ÚLTIMA IMAGEM */}
+        <Card className="min-w-0 overflow-hidden rounded-2xl shadow-sm">
           <CardHeader>
-            <div className="flex items-center justify-between gap-4">
-              <div>
+            <div className="flex min-w-0 items-center justify-between gap-4">
+              <div className="min-w-0">
                 <CardTitle>
                   Última imagem
                 </CardTitle>
 
                 <CardDescription className="mt-1">
-                  Registro mais recente da
+                  Registro mais
+                  recente da
                   construção.
                 </CardDescription>
               </div>
 
-              <Camera className="size-5 text-emerald-800" />
+              <Camera className="size-5 shrink-0 text-emerald-800" />
             </div>
           </CardHeader>
 
@@ -474,25 +568,30 @@ export function HomeDashboard({
               <div className="space-y-4">
                 <Link
                   href="/obra"
-                  className="block aspect-4/3 overflow-hidden rounded-xl bg-slate-100"
+                  className="block aspect-[4/3] overflow-hidden rounded-xl bg-slate-100"
                 >
                   <img
                     src={
-                      data.latestMedia.signedUrl
+                      data.latestMedia
+                        .signedUrl
                     }
                     alt={
-                      data.latestMedia.title ||
-                      data.latestMedia.stageName ||
+                      data.latestMedia
+                        .title ||
+                      data.latestMedia
+                        .stageName ||
                       "Última imagem da obra"
                     }
                     className="size-full object-cover transition-transform duration-300 hover:scale-[1.03]"
                   />
                 </Link>
 
-                <div>
-                  <p className="font-medium">
-                    {data.latestMedia.title ||
-                      data.latestMedia.stageName ||
+                <div className="min-w-0">
+                  <p className="break-words font-medium">
+                    {data.latestMedia
+                      .title ||
+                      data.latestMedia
+                        .stageName ||
                       "Evolução da obra"}
                   </p>
 
@@ -505,18 +604,20 @@ export function HomeDashboard({
                 </div>
               </div>
             ) : (
-              <div className="flex aspect-4/3 flex-col items-center justify-center rounded-xl border border-dashed text-center">
+              <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-dashed p-5 text-center">
                 <Camera className="mb-3 size-8 text-slate-400" />
 
                 <p className="text-sm font-medium">
-                  Nenhuma imagem adicionada
+                  Nenhuma imagem
+                  adicionada
                 </p>
 
                 <Link
                   href="/obra"
                   className="mt-2 text-sm text-emerald-900 hover:underline"
                 >
-                  Abrir galeria da obra
+                  Abrir galeria da
+                  obra
                 </Link>
               </div>
             )}
@@ -524,22 +625,23 @@ export function HomeDashboard({
         </Card>
       </div>
 
-      {/* Acesso rápido */}
-      <Card className="rounded-2xl shadow-sm">
+      {/* ACESSO RÁPIDO */}
+      <Card className="min-w-0 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>
             Acesso rápido
           </CardTitle>
 
           <CardDescription>
-            Principais áreas do Apê 13-01.
+            Principais áreas do
+            Apê 13-01.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="grid gap-4 md:grid-cols-3">
+        <CardContent className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
           <Link
             href="/financiamento"
-            className="group rounded-xl border p-5 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
+            className="group min-w-0 rounded-xl border p-5 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
           >
             <Landmark className="mb-4 size-5 text-emerald-900" />
 
@@ -548,8 +650,8 @@ export function HomeDashboard({
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Simulações, parcelas e
-              amortizações.
+              Simulações, parcelas
+              e amortizações.
             </p>
 
             <ArrowRight className="mt-4 size-4 transition-transform group-hover:translate-x-1" />
@@ -557,7 +659,7 @@ export function HomeDashboard({
 
           <Link
             href="/gastos"
-            className="group rounded-xl border p-5 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
+            className="group min-w-0 rounded-xl border p-5 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
           >
             <ReceiptText className="mb-4 size-5 text-emerald-900" />
 
@@ -566,7 +668,8 @@ export function HomeDashboard({
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Custos consolidados e taxa de obra.
+              Custos consolidados
+              e taxa de obra.
             </p>
 
             <ArrowRight className="mt-4 size-4 transition-transform group-hover:translate-x-1" />
@@ -574,7 +677,7 @@ export function HomeDashboard({
 
           <Link
             href="/obra"
-            className="group rounded-xl border p-5 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
+            className="group min-w-0 rounded-xl border p-5 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
           >
             <Building2 className="mb-4 size-5 text-emerald-900" />
 
@@ -583,7 +686,9 @@ export function HomeDashboard({
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Percentuais, histórico e galeria.
+              Percentuais,
+              histórico e
+              galeria.
             </p>
 
             <ArrowRight className="mt-4 size-4 transition-transform group-hover:translate-x-1" />

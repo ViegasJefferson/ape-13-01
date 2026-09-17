@@ -27,7 +27,7 @@ export default async function HomePage() {
 
     if (!data) {
       return (
-        <section className="mx-auto max-w-7xl">
+        <section className="mx-auto w-full max-w-[1680px]">
           <Card className="rounded-2xl border-amber-200 bg-amber-50">
             <CardContent className="p-6">
               <p className="font-medium text-amber-950">
@@ -50,7 +50,7 @@ export default async function HomePage() {
       );
 
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <div className="mb-8">
           <Badge
             variant="secondary"

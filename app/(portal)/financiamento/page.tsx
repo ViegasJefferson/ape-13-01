@@ -44,7 +44,7 @@ export default async function FinanciamentoPage() {
     console.error(error);
 
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <div className="mb-8">
           <Badge variant="secondary" className="mb-3 bg-red-100 text-red-900">
             Erro de conexão
@@ -83,7 +83,7 @@ export default async function FinanciamentoPage() {
 
   if (!contract) {
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto w-full max-w-[1680px]">
         <div className="mb-8">
           <Badge
             variant="secondary"
@@ -144,7 +144,7 @@ export default async function FinanciamentoPage() {
       : Math.max(...payments.map((payment) => payment.installmentNumber)) + 1;
 
   return (
-    <section className="mx-auto max-w-7xl">
+    <section className="mx-auto w-full max-w-[1680px]">
       <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <Badge
