@@ -224,7 +224,6 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
     `,
       )
       .eq("apartment_id", apartment.id)
-      .neq("status", "cancelled")
       .order("title", {
         ascending: true,
       }),
@@ -245,10 +244,6 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
       .eq(
         "apartment_id",
         apartment.id,
-      )
-      .neq(
-        "status",
-        "cancelled",
       )
       .order(
         "title",
@@ -300,27 +295,32 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
 
   const canEdit = member?.role === "owner" || member?.role === "editor";
 
-  const renovationOptions:
-  GallerySourceOption[] =
+const renovationRows =
   (
-    (
-      renovationResponse.data ??
-      []
-    ) as RenovationGalleryRow[]
-  ).map((item) => ({
+    renovationResponse.data ??
+    []
+  ) as RenovationGalleryRow[];
+
+const architectureRows =
+  (
+    architectureResponse.data ??
+    []
+  ) as ArchitectureGalleryRow[];
+
+function mapRenovationOption(
+  item: RenovationGalleryRow,
+): GallerySourceOption {
+  return {
     id: item.id,
     title: item.title,
     room: item.area,
-  }));
+  };
+}
 
-  const architectureOptions:
-  GallerySourceOption[] =
-  (
-    (
-      architectureResponse.data ??
-      []
-    ) as ArchitectureGalleryRow[]
-  ).map((item) => ({
+function mapArchitectureOption(
+  item: ArchitectureGalleryRow,
+): GallerySourceOption {
+  return {
     id: item.id,
 
     title:
@@ -328,9 +328,49 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
         ? `${item.title} — ${item.version_label}`
         : item.title,
 
-    room:
-      item.room,
-  }));
+    room: item.room,
+  };
+}
+
+/*
+ * Todos os registros são mantidos
+ * para resolver vínculos antigos.
+ */
+const renovationSourceOptions =
+  renovationRows.map(
+    mapRenovationOption,
+  );
+
+const architectureSourceOptions =
+  architectureRows.map(
+    mapArchitectureOption,
+  );
+
+/*
+ * Registros cancelados não aparecem
+ * para novos vínculos.
+ */
+const renovationOptions =
+  renovationRows
+    .filter(
+      (item) =>
+        item.status !==
+        "cancelled",
+    )
+    .map(
+      mapRenovationOption,
+    );
+
+const architectureOptions =
+  architectureRows
+    .filter(
+      (item) =>
+        item.status !==
+        "cancelled",
+    )
+    .map(
+      mapArchitectureOption,
+    );
   // =======================================================
   // GALERIA PRÓPRIA
   // =======================================================
@@ -380,8 +420,8 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
         Boolean(row.source_id);
 
       const renovationItem =
-        linkedRenovation
-          ? renovationOptions.find(
+          linkedRenovation
+          ? renovationSourceOptions.find(
               (option) =>
                 option.id ===
                 row.source_id,
@@ -392,7 +432,7 @@ export async function getGalleryPageData(): Promise<GalleryPageData | null> {
       row.source_type ===
         "architecture_item" &&
       row.source_id
-        ? architectureOptions.find(
+        ? architectureSourceOptions.find(
             (option) =>
               option.id ===
               row.source_id,

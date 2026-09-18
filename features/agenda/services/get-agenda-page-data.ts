@@ -76,6 +76,7 @@ interface ExpenseAgendaRow {
 interface FinancingContractAgendaRow {
   id: string;
   bank_name: string;
+  active: boolean;
 }
 
 interface FinancingPaymentAgendaRow {
@@ -164,6 +165,7 @@ const validEventTypes: ReminderEventType[] = [
   "financing",
   "construction",
   "renovation",
+  "architecture",
   "document",
   "appointment",
   "other",
@@ -191,21 +193,107 @@ function isPriority(
   );
 }
 
-function toDateString(
-  date: Date,
-) {
+const APP_TIME_ZONE =
+  "America/Sao_Paulo";
+
+function getTodayDateString() {
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          APP_TIME_ZONE,
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
+      },
+    ).formatToParts(
+      new Date(),
+    );
+
   const year =
-    date.getFullYear();
+    parts.find(
+      (part) =>
+        part.type ===
+        "year",
+    )?.value;
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
+  const month =
+    parts.find(
+      (part) =>
+        part.type ===
+        "month",
+    )?.value;
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
+  const day =
+    parts.find(
+      (part) =>
+        part.type ===
+        "day",
+    )?.value;
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    throw new Error(
+      "Não foi possível determinar a data atual.",
+    );
+  }
 
   return `${year}-${month}-${day}`;
+}
+
+function addDaysToDateString(
+  value: string,
+  days: number,
+) {
+  const [
+    year,
+    month,
+    day,
+  ] =
+    value
+      .split("-")
+      .map(Number);
+
+  const date =
+    new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+      ),
+    );
+
+  date.setUTCDate(
+    date.getUTCDate() +
+      days,
+  );
+
+  return [
+    date.getUTCFullYear(),
+    String(
+      date.getUTCMonth() +
+        1,
+    ).padStart(
+      2,
+      "0",
+    ),
+    String(
+      date.getUTCDate(),
+    ).padStart(
+      2,
+      "0",
+    ),
+  ].join("-");
 }
 
 function formatCurrency(
@@ -418,19 +506,16 @@ export async function getAgendaPageData(): Promise<
         "financing_contracts",
       )
       .select(
-        `
-          id,
-          bank_name
-        `,
-      )
-      .eq(
-        "apartment_id",
-        apartment.id,
-      )
-      .eq(
-        "active",
-        true,
-      ),
+      `
+        id,
+        bank_name,
+        active
+      `,
+    )
+    .eq(
+      "apartment_id",
+      apartment.id,
+    ),
 
     // Reforma.
     supabase
@@ -633,9 +718,7 @@ export async function getAgendaPageData(): Promise<
   // =======================================================
 
   const todayString =
-    toDateString(
-      new Date(),
-    );
+  getTodayDateString();
 
   // =======================================================
   // LEMBRETES MANUAIS
@@ -845,10 +928,39 @@ export async function getAgendaPageData(): Promise<
   const financingReminders: ApartmentReminder[] =
     financingPayments
       .filter(
-        (payment) =>
-          payment.payment_status !==
-          "cancelled",
-      )
+          (payment) => {
+            if (
+              payment.payment_status ===
+              "cancelled"
+            ) {
+              return false;
+            }
+
+            const contract =
+              contractById.get(
+                payment.contract_id,
+              );
+
+            if (!contract) {
+              return false;
+            }
+
+            /*
+            * Contrato ativo:
+            * mostra parcelas abertas
+            * e pagas.
+            *
+            * Contrato inativo:
+            * preserva somente
+            * o histórico já pago.
+            */
+            return (
+              contract.active ||
+              payment.payment_status ===
+                "paid"
+            );
+          },
+        )
       .map((payment) => {
         const contract =
           contractById.get(
@@ -1034,7 +1146,7 @@ export async function getAgendaPageData(): Promise<
             item.id,
 
           sourceHref:
-            "/reforma",
+            `/reforma#reforma-${item.id}`,
 
           createdAt:
             item.target_date as string,
@@ -1194,17 +1306,11 @@ export async function getAgendaPageData(): Promise<
         todayString,
     ).length;
 
-  const sevenDays =
-    new Date();
-
-  sevenDays.setDate(
-    sevenDays.getDate() + 7,
-  );
-
   const sevenDaysString =
-    toDateString(
-      sevenDays,
-    );
+  addDaysToDateString(
+    todayString,
+    7,
+  );
 
   const nextSevenDaysCount =
     activeReminders.filter(

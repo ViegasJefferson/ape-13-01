@@ -9,7 +9,7 @@ export interface ProjectOverviewData {
   householdTotal: number;
   householdPending: number;
 
-  galleryUploads: number;
+  galleryDirectUploads: number;
   documentsTotal: number;
 }
 
@@ -243,7 +243,7 @@ export async function getProjectOverview(): Promise<
 
     householdPending,
 
-    galleryUploads:
+    galleryDirectUploads:
       galleryResponse.count ??
       0,
 

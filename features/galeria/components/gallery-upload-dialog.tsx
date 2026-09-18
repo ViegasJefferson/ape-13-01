@@ -61,7 +61,8 @@ const BUCKET_ID =
 const MAX_FILE_SIZE =
   6 * 1024 * 1024;
 
-const MAX_FILES = 10;
+const MAX_FILES =
+  10;
 
 const allowedMimeTypes =
   new Set([
@@ -92,7 +93,6 @@ interface GalleryUploadDialogProps {
   linkedSourceId?:
     string | null;
 }
-
 
 function validateFiles(
   files: File[],
@@ -146,12 +146,18 @@ function getLocalDate() {
   const month =
     String(
       date.getMonth() + 1,
-    ).padStart(2, "0");
+    ).padStart(
+      2,
+      "0",
+    );
 
   const day =
     String(
       date.getDate(),
-    ).padStart(2, "0");
+    ).padStart(
+      2,
+      "0",
+    );
 
   return `${year}-${month}-${day}`;
 }
@@ -163,6 +169,22 @@ function removeExtension(
     /\.[^/.]+$/,
     "",
   );
+}
+
+function formatFileSize(
+  size: number,
+) {
+  const mb =
+    size /
+    (1024 * 1024);
+
+  return `${mb.toLocaleString(
+    "pt-BR",
+    {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    },
+  )} MB`;
 }
 
 export function GalleryUploadDialog({
@@ -177,7 +199,8 @@ export function GalleryUploadDialog({
 
   const supabase =
     useMemo(
-      () => createClient(),
+      () =>
+        createClient(),
       [],
     );
 
@@ -210,14 +233,19 @@ export function GalleryUploadDialog({
     "success" | "error"
   >("success");
 
+  const [
+    selectedFiles,
+    setSelectedFiles,
+  ] = useState<File[]>([]);
+
   const initialSection =
-  linkedSourceType ===
-  "renovation_item"
-    ? "renovation"
-    : linkedSourceType ===
-        "architecture_item"
-      ? "architecture"
-      : "architecture";
+    linkedSourceType ===
+    "renovation_item"
+      ? "renovation"
+      : linkedSourceType ===
+          "architecture_item"
+        ? "architecture"
+        : "architecture";
 
   const [
     section,
@@ -225,6 +253,61 @@ export function GalleryUploadDialog({
   ] = useState(
     initialSection,
   );
+
+  const totalSelectedSize =
+    selectedFiles.reduce(
+      (
+        total,
+        file,
+      ) =>
+        total +
+        file.size,
+      0,
+    );
+
+  function handleOpenChange(
+    nextOpen: boolean,
+  ) {
+    if (
+      isUploading &&
+      !nextOpen
+    ) {
+      return;
+    }
+
+    setOpen(
+      nextOpen,
+    );
+
+    if (!nextOpen) {
+      setMessage(null);
+
+      setSelectedFiles(
+        [],
+      );
+
+      if (
+        fileInputRef.current
+      ) {
+        fileInputRef.current.value =
+          "";
+      }
+    }
+  }
+
+  function handleFileChange() {
+    const files =
+      Array.from(
+        fileInputRef.current
+          ?.files ?? [],
+      );
+
+    setSelectedFiles(
+      files,
+    );
+
+    setMessage(null);
+  }
 
   async function handleSubmit(
     event:
@@ -247,7 +330,9 @@ export function GalleryUploadDialog({
       );
 
     const validation =
-      validateFiles(files);
+      validateFiles(
+        files,
+      );
 
     if (validation) {
       setMessageType(
@@ -261,7 +346,7 @@ export function GalleryUploadDialog({
       return;
     }
 
-    const section =
+    const selectedSection =
       String(
         formData.get(
           "section",
@@ -269,16 +354,18 @@ export function GalleryUploadDialog({
       );
 
     const renovationItemId =
-    section === "renovation"
-      ? String(
-          formData.get(
-            "renovationItemId",
-          ) ?? "",
-        ).trim()
-      : "";
+      selectedSection ===
+      "renovation"
+        ? String(
+            formData.get(
+              "renovationItemId",
+            ) ?? "",
+          ).trim()
+        : "";
 
     const architectureItemId =
-      section === "architecture"
+      selectedSection ===
+      "architecture"
         ? String(
             formData.get(
               "architectureItemId",
@@ -292,7 +379,9 @@ export function GalleryUploadDialog({
         "renovation",
         "inspiration",
         "other",
-      ].includes(section)
+      ].includes(
+        selectedSection,
+      )
     ) {
       setMessageType(
         "error",
@@ -378,18 +467,23 @@ export function GalleryUploadDialog({
         ) ?? "",
       )
         .split(",")
-        .map((tag) =>
-          tag.trim(),
+        .map(
+          (tag) =>
+            tag.trim(),
         )
         .filter(Boolean)
         .slice(0, 20);
 
-    setIsUploading(true);
+    setIsUploading(
+      true,
+    );
 
     try {
       const {
-        data: userData,
-        error: userError,
+        data:
+          userData,
+        error:
+          userError,
       } =
         await supabase.auth.getUser();
 
@@ -423,15 +517,20 @@ export function GalleryUploadDialog({
           (
             referenceDate ??
             getLocalDate()
-          ).slice(0, 7);
+          ).slice(
+            0,
+            7,
+          );
 
         const storagePath =
           [
             apartmentId,
-            section,
+            selectedSection,
             monthFolder,
             `${crypto.randomUUID()}.${extension}`,
-          ].join("/");
+          ].join(
+            "/",
+          );
 
         const {
           error:
@@ -486,7 +585,8 @@ export function GalleryUploadDialog({
               apartment_id:
                 apartmentId,
 
-              section,
+              section:
+                selectedSection,
 
               title:
                 itemTitle,
@@ -544,10 +644,15 @@ export function GalleryUploadDialog({
           );
         }
 
-        uploadedCount += 1;
+        uploadedCount +=
+          1;
       }
 
       form.reset();
+
+      setSelectedFiles(
+        [],
+      );
 
       setMessageType(
         "success",
@@ -559,17 +664,26 @@ export function GalleryUploadDialog({
 
       router.refresh();
 
-      setTimeout(() => {
-        setOpen(false);
-        setMessage(null);
-      }, 900);
+      setTimeout(
+        () => {
+          setOpen(
+            false,
+          );
+
+          setMessage(
+            null,
+          );
+        },
+        900,
+      );
     } catch (error) {
       setMessageType(
         "error",
       );
 
       setMessage(
-        error instanceof Error
+        error instanceof
+          Error
           ? error.message
           : "Não foi possível enviar as imagens.",
       );
@@ -582,28 +696,32 @@ export function GalleryUploadDialog({
 
   return (
     <Dialog
-      open={open}
+      open={
+        open
+      }
       onOpenChange={
-        setOpen
+        handleOpenChange
       }
     >
-      <DialogTrigger className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-emerald-950 px-4 text-sm font-medium text-white shadow-xs transition-colors hover:bg-emerald-900">
+      <DialogTrigger className="inline-flex h-9 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-emerald-950 px-4 text-sm font-medium text-white shadow-xs transition-colors hover:bg-emerald-900 sm:w-auto">
         <ImagePlus className="size-4" />
 
         Adicionar imagens
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            Adicionar à galeria
+            Adicionar à
+            galeria
           </DialogTitle>
 
           <DialogDescription>
             Envie imagens de
             arquitetura, reforma,
             inspirações e outros
-            registros do apartamento.
+            registros do
+            apartamento.
           </DialogDescription>
         </DialogHeader>
 
@@ -611,9 +729,10 @@ export function GalleryUploadDialog({
           onSubmit={
             handleSubmit
           }
-          className="space-y-5"
+          className="min-w-0 space-y-5"
         >
-          <div className="space-y-2">
+          {/* ARQUIVOS */}
+          <div className="min-w-0 space-y-2">
             <Label htmlFor="galleryFiles">
               Imagens
             </Label>
@@ -628,6 +747,13 @@ export function GalleryUploadDialog({
               accept="image/jpeg,image/png,image/webp"
               multiple
               required
+              disabled={
+                isUploading
+              }
+              className="w-full"
+              onChange={
+                handleFileChange
+              }
             />
 
             <p className="text-xs leading-5 text-slate-500">
@@ -635,27 +761,88 @@ export function GalleryUploadDialog({
               envio, com no máximo
               6 MB cada.
             </p>
+
+            {selectedFiles.length >
+              0 && (
+              <div className="rounded-xl border bg-slate-50 p-3">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-medium text-slate-800">
+                    {selectedFiles.length}{" "}
+                    {selectedFiles.length ===
+                    1
+                      ? "imagem selecionada"
+                      : "imagens selecionadas"}
+                  </p>
+
+                  <p className="text-xs text-slate-500">
+                    {formatFileSize(
+                      totalSelectedSize,
+                    )}{" "}
+                    no total
+                  </p>
+                </div>
+
+                <div className="mt-2 max-h-24 space-y-1 overflow-y-auto">
+                  {selectedFiles.map(
+                    (
+                      file,
+                      index,
+                    ) => (
+                      <div
+                        key={`${file.name}-${index}`}
+                        className="flex min-w-0 items-center justify-between gap-3 text-xs text-slate-600"
+                      >
+                        <span className="min-w-0 flex-1 truncate">
+                          {
+                            file.name
+                          }
+                        </span>
+
+                        <span className="shrink-0 text-slate-400">
+                          {formatFileSize(
+                            file.size,
+                          )}
+                        </span>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-2">
+          {/* CAMPOS */}
+          <div className="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2">
+            {/* SETOR */}
+            <div className="min-w-0 space-y-2">
               <Label htmlFor="gallerySection">
                 Setor
               </Label>
 
               <NativeSelect
-                  id="gallerySection"
-                  name="section"
-                  value={section}
-                  onChange={(event) =>
-                    setSection(
-                      event.target.value,
-                    )
-                  }
-                  required
-                >
+                id="gallerySection"
+                name="section"
+                value={
+                  section
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setSection(
+                    event
+                      .target
+                      .value,
+                  )
+                }
+                disabled={
+                  isUploading
+                }
+                className="w-full"
+                required
+              >
                 <NativeSelectOption value="architecture">
-                  Projeto de arquitetura
+                  Projeto de
+                  arquitetura
                 </NativeSelectOption>
 
                 <NativeSelectOption value="renovation">
@@ -672,9 +859,10 @@ export function GalleryUploadDialog({
               </NativeSelect>
             </div>
 
+            {/* REFORMA */}
             {section ===
               "renovation" && (
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="galleryRenovationItem">
                   Item da reforma
                 </Label>
@@ -683,24 +871,35 @@ export function GalleryUploadDialog({
                   id="galleryRenovationItem"
                   name="renovationItemId"
                   defaultValue={
-                  linkedSourceType ===
+                    linkedSourceType ===
                     "renovation_item"
-                    ? linkedSourceId ??
-                      ""
-                    : ""
-                }
+                      ? linkedSourceId ??
+                        ""
+                      : ""
+                  }
+                  disabled={
+                    isUploading
+                  }
+                  className="w-full"
                 >
                   <NativeSelectOption value="">
-                    Sem vínculo específico
+                    Sem vínculo
+                    específico
                   </NativeSelectOption>
 
                   {renovationOptions.map(
                     (item) => (
                       <NativeSelectOption
-                        key={item.id}
-                        value={item.id}
+                        key={
+                          item.id
+                        }
+                        value={
+                          item.id
+                        }
                       >
-                        {item.title}
+                        {
+                          item.title
+                        }
                         {item.room
                           ? ` — ${item.room}`
                           : ""}
@@ -710,18 +909,21 @@ export function GalleryUploadDialog({
                 </NativeSelect>
 
                 <p className="text-xs leading-5 text-slate-500">
-                  Vincule a imagem a um
-                  serviço ou etapa específica
+                  Vincule a imagem
+                  a um serviço ou
+                  etapa específica
                   da Reforma.
                 </p>
               </div>
             )}
 
+            {/* ARQUITETURA */}
             {section ===
               "architecture" && (
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="galleryArchitectureItem">
-                  Registro de arquitetura
+                  Registro de
+                  arquitetura
                 </Label>
 
                 <NativeSelect
@@ -729,23 +931,34 @@ export function GalleryUploadDialog({
                   name="architectureItemId"
                   defaultValue={
                     linkedSourceType ===
-                      "architecture_item"
+                    "architecture_item"
                       ? linkedSourceId ??
                         ""
                       : ""
                   }
+                  disabled={
+                    isUploading
+                  }
+                  className="w-full"
                 >
                   <NativeSelectOption value="">
-                    Sem vínculo específico
+                    Sem vínculo
+                    específico
                   </NativeSelectOption>
 
                   {architectureOptions.map(
                     (item) => (
                       <NativeSelectOption
-                        key={item.id}
-                        value={item.id}
+                        key={
+                          item.id
+                        }
+                        value={
+                          item.id
+                        }
                       >
-                        {item.title}
+                        {
+                          item.title
+                        }
                         {item.room
                           ? ` — ${item.room}`
                           : ""}
@@ -755,14 +968,17 @@ export function GalleryUploadDialog({
                 </NativeSelect>
 
                 <p className="text-xs leading-5 text-slate-500">
-                  Vincule a imagem a uma
-                  entrega, versão ou decisão
-                  específica do projeto.
+                  Vincule a imagem
+                  a uma entrega,
+                  versão ou decisão
+                  específica do
+                  projeto.
                 </p>
               </div>
             )}
 
-            <div className="space-y-2">
+            {/* DATA */}
+            <div className="min-w-0 space-y-2">
               <Label htmlFor="galleryReferenceDate">
                 Data
               </Label>
@@ -774,10 +990,15 @@ export function GalleryUploadDialog({
                 defaultValue={
                   getLocalDate()
                 }
+                disabled={
+                  isUploading
+                }
+                className="w-full"
               />
             </div>
 
-            <div className="space-y-2">
+            {/* AMBIENTE */}
+            <div className="min-w-0 space-y-2">
               <Label htmlFor="galleryRoom">
                 Ambiente
               </Label>
@@ -786,11 +1007,16 @@ export function GalleryUploadDialog({
                 id="galleryRoom"
                 name="room"
                 maxLength={100}
+                disabled={
+                  isUploading
+                }
+                className="w-full"
                 placeholder="Ex.: Cozinha"
               />
             </div>
 
-            <div className="space-y-2">
+            {/* TAGS */}
+            <div className="min-w-0 space-y-2">
               <Label htmlFor="galleryTags">
                 Tags
               </Label>
@@ -798,6 +1024,10 @@ export function GalleryUploadDialog({
               <Input
                 id="galleryTags"
                 name="tags"
+                disabled={
+                  isUploading
+                }
+                className="w-full"
                 placeholder="marcenaria, iluminação, inspiração"
               />
 
@@ -807,7 +1037,8 @@ export function GalleryUploadDialog({
               </p>
             </div>
 
-            <div className="space-y-2 sm:col-span-2">
+            {/* TÍTULO */}
+            <div className="min-w-0 space-y-2 sm:col-span-2">
               <Label htmlFor="galleryTitle">
                 Título
               </Label>
@@ -816,17 +1047,22 @@ export function GalleryUploadDialog({
                 id="galleryTitle"
                 name="title"
                 maxLength={150}
+                disabled={
+                  isUploading
+                }
+                className="w-full"
                 placeholder="Ex.: Projeto da cozinha"
               />
 
               <p className="text-xs text-slate-500">
-                Se estiver vazio, será
-                utilizado o nome do
-                arquivo.
+                Se estiver vazio,
+                será utilizado o nome
+                do arquivo.
               </p>
             </div>
 
-            <div className="space-y-2 sm:col-span-2">
+            {/* DESCRIÇÃO */}
+            <div className="min-w-0 space-y-2 sm:col-span-2">
               <Label htmlFor="galleryDescription">
                 Descrição
               </Label>
@@ -835,39 +1071,48 @@ export function GalleryUploadDialog({
                 id="galleryDescription"
                 name="description"
                 maxLength={1000}
+                disabled={
+                  isUploading
+                }
+                className="min-h-28 w-full resize-y"
                 placeholder="Informações sobre as imagens."
               />
             </div>
           </div>
 
+          {/* SINCRONIZAÇÃO */}
           <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
             <p className="text-sm font-medium text-sky-950">
-              Obra, Enxoval e Documentos
+              Obra, Enxoval e
+              Documentos
             </p>
 
             <p className="mt-1 text-xs leading-5 text-sky-800">
-              As imagens desses módulos
-              são sincronizadas
+              As imagens desses
+              módulos são
+              sincronizadas
               automaticamente. Não
               precisam ser enviadas
               novamente aqui.
             </p>
           </div>
 
+          {/* MENSAGEM */}
           {message && (
             <div
               role="alert"
               className={
                 messageType ===
                 "error"
-                  ? "rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-                  : "rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+                  ? "rounded-xl border border-red-200 bg-red-50 p-3 text-sm leading-5 text-red-700"
+                  : "rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-5 text-emerald-800"
               }
             >
               {message}
             </div>
           )}
 
+          {/* AÇÕES */}
           <DialogFooter>
             <Button
               type="button"
@@ -875,8 +1120,11 @@ export function GalleryUploadDialog({
               disabled={
                 isUploading
               }
+              className="w-full sm:w-auto"
               onClick={() =>
-                setOpen(false)
+                handleOpenChange(
+                  false,
+                )
               }
             >
               Cancelar
@@ -887,7 +1135,7 @@ export function GalleryUploadDialog({
               disabled={
                 isUploading
               }
-              className="bg-emerald-950 hover:bg-emerald-900"
+              className="w-full bg-emerald-950 hover:bg-emerald-900 sm:w-auto"
             >
               {isUploading ? (
                 <>
@@ -899,7 +1147,8 @@ export function GalleryUploadDialog({
                 <>
                   <ImagePlus className="size-4" />
 
-                  Adicionar à galeria
+                  Adicionar à
+                  galeria
                 </>
               )}
             </Button>

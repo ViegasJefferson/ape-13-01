@@ -48,6 +48,15 @@ interface ExpenseRow {
 interface AmortizationRow {
   amount: number | string;
   amortization_date: string;
+
+  contract:
+    | {
+        apartment_id: string;
+      }
+    | {
+        apartment_id: string;
+      }[]
+    | null;
 }
 
 interface ConstructionRow {
@@ -242,16 +251,23 @@ export async function getHomeDashboardData(): Promise<
       }),
 
     supabase
-      .from("extra_amortizations")
-      .select(
-        `
-          amount,
-          amortization_date
-        `,
-      )
-      .order("amortization_date", {
-        ascending: false,
-      }),
+    .from("extra_amortizations")
+    .select(
+      `
+        amount,
+        amortization_date,
+        contract:financing_contracts!inner (
+          apartment_id
+        )
+      `,
+    )
+    .eq(
+      "contract.apartment_id",
+      apartment.id,
+    )
+    .order("amortization_date", {
+      ascending: false,
+    }),
 
     supabase
       .from("construction_updates")

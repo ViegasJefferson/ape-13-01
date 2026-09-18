@@ -145,9 +145,9 @@ export async function ProjectOverview() {
           <OverviewCard
             title="Galeria"
             value={String(
-              data.galleryUploads,
+              data.galleryDirectUploads,
             )}
-            description="uploads próprios da galeria"
+            description="imagens enviadas diretamente"
             href="/galeria"
             icon={Images}
           />
